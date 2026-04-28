@@ -19,13 +19,6 @@ class NewCaptionAppBar extends StatelessWidget implements PreferredSizeWidget {
             color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
-      actions: [
-        TextButton(
-          onPressed: onToggleMultipleImages,
-          child: const Text(
-              "Đăng tải", style: TextStyle(color: Colors.blueAccent)),
-        ),
-      ],
     );
   }
 
