@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:untitled/presentation/pages/newPost.dart';
 
+import 'Widgets/Features/Auth/Presentation/Pages/login_page.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -20,7 +22,7 @@ class MyApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      home: const NewPostScreen(),
+      home: NewPostScreen(),
     );
   }
 }
