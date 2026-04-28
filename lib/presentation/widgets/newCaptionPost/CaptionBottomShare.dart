@@ -20,7 +20,7 @@ class NewCaptionBottomShare extends StatelessWidget {
             ),
           ),
           child: const Text(
-            'Chia sẻ',
+            'Đăng tải',
             style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
