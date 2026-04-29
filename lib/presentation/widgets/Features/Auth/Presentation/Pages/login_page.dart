@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:untitled/Widgets/Features/Auth/Presentation/Pages/register_page.dart';
+import 'package:untitled/presentation/widgets/Features/Auth/Presentation/Pages/register_page.dart';
 import '../../../Home/Presentation/Pages/main_wrapper.dart';
 import '../Widgets/Button/AuthButton.dart';
 import '../Widgets/InputField/AuthInputField.dart';

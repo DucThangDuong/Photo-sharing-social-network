@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../Models/mock_data.dart';
-import '../../Models/post_model.dart';
+import '../../../../../../data/Models/PostViewModel.dart';
+import '../../../../../../data/Models/mock_data.dart';
 import '../widgets/post_item.dart';
 
 class HomePage extends StatelessWidget {
@@ -9,7 +9,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Lấy dữ liệu mẫu đã tạo
-    final List<PostModel> posts = MockData.getPosts();
+    final List<PostViewModel> posts = MockData.getPosts();
 
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
@@ -25,7 +25,7 @@ class HomePage extends StatelessWidget {
       body: ListView.builder(
         itemCount: posts.length,
         itemBuilder: (context, index) {
-          return PostItem(post: posts[index]);
+          return PostItem(postData: posts[index]);
         },
       ),
     );

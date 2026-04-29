@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'Widgets/Features/Auth/Presentation/Pages/login_page.dart';
-import 'Widgets/Features/Home/Presentation/Pages/main_wrapper.dart';
+import 'package:untitled/presentation/widgets/Features/Auth/Presentation/Pages/login_page.dart';
 
 void main() {
   runApp(const MyApp());

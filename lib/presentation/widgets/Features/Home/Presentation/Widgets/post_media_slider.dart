@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../Models/post_model.dart';
+import '../../../../../../data/Models/PostMedia.dart';
+
 
 class PostMediaSlider extends StatefulWidget {
   final List<PostMedia> mediaList;
