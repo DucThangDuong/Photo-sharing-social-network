@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../../data/Models/PostViewModel.dart';
 import '../../../../../../data/Models/mock_data.dart';
+import '../../../../../pages/newPost.dart';
 import '../widgets/post_item.dart';
 
 class HomePage extends StatelessWidget {
@@ -8,23 +9,45 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Lấy dữ liệu mẫu đã tạo
     final List<PostViewModel> posts = MockData.getPosts();
 
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: const Text('Instagram', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+        backgroundColor: const Color(0xFF121212),
+        elevation: 0,
+        title: const Text(
+          'Instagram',
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+              color: Colors.white
+          ),
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.add_box_outlined), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.favorite_border), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.chat_bubble_outline), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.add_box_outlined, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NewPostScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.favorite_border, color: Colors.white),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+            onPressed: () {},
+          ),
         ],
       ),
-      // ListView này sẽ cho phép bạn cuộn lên xuống thoải mái
       body: ListView.builder(
         itemCount: posts.length,
         itemBuilder: (context, index) {
+          // 2. CẬP NHẬT: Truyền tham số postData cho PostItem
           return PostItem(postData: posts[index]);
         },
       ),
