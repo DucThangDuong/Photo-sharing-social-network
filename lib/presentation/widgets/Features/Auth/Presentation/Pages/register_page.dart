@@ -61,7 +61,7 @@ class _RegisterPhonePageState extends State<RegisterPhonePage> {
     } else if (!_isVietnamesePhoneNumber(phone)) {
       _showErrorSnackBar('Số điện thoại không đúng định dạng Việt Nam');
     } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const CreatePasswordPage()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => CreatePasswordPage(email: phone)));
     }
   }
 

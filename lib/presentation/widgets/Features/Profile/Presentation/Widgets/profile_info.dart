@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../data/Models/User.dart';
+import '../../../../../../data/datasources/DTOs/UserDTO.dart';
 
 class ProfileInfo extends StatelessWidget {
-  final User user;
+  final UserModelDTO user;
   const ProfileInfo({super.key, required this.user});
 
   @override
@@ -15,7 +16,7 @@ class ProfileInfo extends StatelessWidget {
         children: [
           // lấy tên đầy dủ và hien thi
           Text(
-            user.fullName,
+            user.fullName??'',
             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
           ),
 

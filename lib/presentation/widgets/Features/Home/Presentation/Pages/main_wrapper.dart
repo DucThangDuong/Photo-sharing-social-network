@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../../../../data/datasources/ApiServices.dart';
+import '../../../../../../data/datasources/DTOs/UserDTO.dart';
+import '../../../../../../data/datasources/global/User.dart';
 import '../../../Profile/Presentation/Page/profile_page.dart';
 import 'home_page.dart';
 
@@ -15,6 +19,37 @@ class MainWrapper extends StatefulWidget {
 }
 
 class _MainWrapperState extends State<MainWrapper> {
+  bool _isFetchingUser = true;
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile(); // Gọi hàm lấy dữ liệu ngay khi vừa nạp màn hình
+  }
+
+  Future<void> _fetchUserProfile() async {
+    try {
+      // 1. Gọi API lấy dữ liệu như bạn viết
+      final userRes = await ApiService().get('/user/profile');
+
+      // Kiểm tra an toàn trước khi map dữ liệu
+      if (userRes != null && userRes['data'] != null) {
+        UserModelDTO user = UserModelDTO.fromJson(userRes['data']);
+
+        // 2. Nạp vào kho Provider
+        if (mounted) {
+          Provider.of<UserProvider>(context, listen: false).setUser(user);
+        }
+      }
+    } catch (e) {
+      print("Lỗi lấy thông tin người dùng: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isFetchingUser = false;
+        });
+      }
+    }
+  }
   int _selectedIndex = 0;
 
   // Danh sách các trang tương ứng với các nút ở thanh bên dưới
@@ -27,6 +62,12 @@ class _MainWrapperState extends State<MainWrapper> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isFetchingUser) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF121212),
+        body: Center(child: CircularProgressIndicator(color: Colors.white54)),
+      );
+    }
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       // IndexedStack giúp giữ nguyên vị trí cuộn khi bạn chuyển tab

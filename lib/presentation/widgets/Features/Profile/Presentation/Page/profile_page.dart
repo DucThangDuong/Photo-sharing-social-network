@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../../../data/Models/User.dart';
 import '../../../../../../data/Models/mock_data.dart';
+import '../../../../../../data/datasources/global/User.dart';
 import '../Widgets/discover_people.dart';
 import '../Widgets/profile_header.dart';
 import '../Widgets/profile_info.dart';
@@ -12,7 +14,16 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Giả lập lấy User hiện tại
-    final User currentUser = MockData.getPosts()[0].user;
+    // final User currentUser = MockData.getPosts()[0].user;
+    final currentUser = context.watch<UserProvider>().user;
+    if (currentUser == null) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF121212),
+        body: Center(
+          child: CircularProgressIndicator(color: Colors.white54),
+        ),
+      );
+    }
     //danh sách bạn bè gợi ý
     final List<User> suggestions = MockData.getSuggestedUsers();
 

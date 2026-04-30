@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:untitled/presentation/widgets/Features/Auth/Presentation/Pages/register_page.dart';
+import '../../../../../../data/datasources/DTOs/UserDTO.dart';
+import '../../../../../../data/datasources/global/User.dart';
 import '../../../Home/Presentation/Pages/main_wrapper.dart';
 import '../Widgets/Button/AuthButton.dart';
 import '../Widgets/InputField/AuthInputField.dart';
 import '../Widgets/Logo/Login_Logo.dart';
 import '../Widgets/Logo/MetaFooter.dart';
 import 'find_account_page.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:untitled/data/datasources/ApiServices.dart';
 
 class InstagramLoginDark extends StatefulWidget {
   @override
@@ -15,12 +20,66 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập đầy đủ thông tin')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await ApiService().post(
+        '/auth/login',
+        data: {
+          'Email': email,
+          'Password': password,
+        },
+      );
+
+      if (response != null && response['data'] != null) {
+        final String? token = response['data']['access_token'];
+        if (token != null) {
+          const storage = FlutterSecureStorage();
+          await storage.write(key: 'access_token', value: token);
+        }
+      }
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainWrapper()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Đăng nhập thất bại: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -64,15 +123,9 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
 
               // Nút Đăng nhập
               AuthButton(
-                label: 'Đăng nhập',
+                label: _isLoading ? 'Đang đăng nhập...' : 'Đăng nhập',
                 color: const Color(0xFF0064E0),
-                onPressed: (){
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MainWrapper()),
-                  );
-                  print("An dang nhap");
-                },
+                onPressed: _isLoading ? () {} : _handleLogin,
               ),
 
               TextButton(

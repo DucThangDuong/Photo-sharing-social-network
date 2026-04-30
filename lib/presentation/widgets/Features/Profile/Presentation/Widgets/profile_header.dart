@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../data/Models/User.dart';
+import '../../../../../../data/datasources/DTOs/UserDTO.dart';
 
 class ProfileHeader extends StatelessWidget {
-  final User user;
+  final UserModelDTO user;
   const ProfileHeader({super.key, required this.user});
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:untitled/data/datasources/ApiServices.dart';
 import '../Widgets/InputField/EmailInputField.dart';
 import '../Widgets/Header/EmailHeader.dart';
 import '../Widgets/Button/AuthButton.dart';
@@ -79,17 +80,27 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
   }
 
   // Tách logic xử lý nhấn nút để hàm build không bị dài
-  void _handleContinue() {
+  Future<void> _handleContinue() async {
     String email = _emailController.text.trim();
     if (email.isEmpty) {
       _showError('Vui lòng nhập email');
     } else if (!_isValidEmail(email)) {
       _showError('Định dạng email không hợp lệ');
     } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const CreatePasswordPage()),
-      );
+      var response = await ApiService().post(
+          '/auth/checkEmail', data: {'Email': email});
+      if (response != null && response['data'] != null) {
+        final bool isEmailExist = response['data']['exists'];
+        if (isEmailExist == true) {
+          _showError('Email đã tồn tại');
+        }
+        else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CreatePasswordPage(email: email)),
+          );
+        }
+      }
     }
   }
 
