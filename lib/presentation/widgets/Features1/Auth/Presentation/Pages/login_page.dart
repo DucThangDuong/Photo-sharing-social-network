@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:untitled/presentation/widgets/Features/Auth/Presentation/Pages/register_page.dart';
+import 'package:untitled/presentation/widgets/Features1/Auth/Presentation/Pages/register_page.dart';
 import '../../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../../data/datasources/global/User.dart';
 import '../../../Home/Presentation/Pages/main_wrapper.dart';
