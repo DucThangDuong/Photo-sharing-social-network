@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:untitled/data/datasources/ApiServices.dart';
 import '../Widgets/InputField/EmailInputField.dart';
 import '../Widgets/Header/EmailHeader.dart';
 import '../Widgets/Button/AuthButton.dart';
@@ -16,13 +17,16 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
 
   // Logic kiểm tra Email
   bool _isValidEmail(String email) {
-    return RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+    return RegExp(
+        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
         .hasMatch(email);
   }
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
+      SnackBar(content: Text(message),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -70,7 +74,6 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
               ),
 
               const Spacer(),
-              _buildFooter(), // 5. Chân trang
             ],
           ),
         ),
@@ -79,32 +82,28 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
   }
 
   // Tách logic xử lý nhấn nút để hàm build không bị dài
-  void _handleContinue() {
+  Future<void> _handleContinue() async {
     String email = _emailController.text.trim();
     if (email.isEmpty) {
       _showError('Vui lòng nhập email');
     } else if (!_isValidEmail(email)) {
       _showError('Định dạng email không hợp lệ');
     } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const CreatePasswordPage()),
-      );
+      var response = await ApiService().post(
+          '/auth/checkEmail', data: {'Email': email});
+      if (response != null && response['data'] != null) {
+        final bool isEmailExist = response['data']['exists'];
+        if (isEmailExist == true) {
+          _showError('Email đã tồn tại');
+        }
+        else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => CreatePasswordPage(email: email)),
+          );
+        }
+      }
     }
-  }
-
-  Widget _buildFooter() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20, top: 20),
-      child: Center(
-        child: TextButton(
-          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-          child: const Text(
-            'Tôi có tài khoản rồi',
-            style: TextStyle(color: Color(0xFF0064E0), fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
-    );
   }
 }

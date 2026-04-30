@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../../data/datasources/ApiServices.dart';
+import '../../../../../presentation/widgets/Features1/Auth/Presentation/Pages/login_page.dart';
 import '../Widgets/InputField/PasswordInputField.dart';
 import '../Widgets/Header/PasswordHeader.dart';
 import '../Widgets/Button/RememberMeOption.dart';
 
 class CreatePasswordPage extends StatefulWidget {
-  const CreatePasswordPage({super.key});
+  final String email;
+  const CreatePasswordPage({super.key, required this.email});
 
   @override
   State<CreatePasswordPage> createState() => _CreatePasswordPageState();
@@ -15,12 +18,57 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _rememberPassword = true;
   bool _isPasswordVisible = false;
-
+  bool _isLoading = false;
   // Logic xử lý link
   Future<void> _handleUrl() async {
     final Uri url = Uri.parse('https://help.instagram.com/1020536697967549');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       debugPrint('Lỗi mở link');
+    }
+  }
+  Future<void> _handleRegister() async {
+    final password = _passwordController.text.trim();
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mật khẩu phải có ít nhất 6 ký tự')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await ApiService().post(
+        '/auth/register',
+        data: {
+          'Email': widget.email,
+          'Password': password,
+        },
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tạo tài khoản thành công')),
+        );
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => InstagramLoginDark()),
+              (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Tạo tài khoản thất bại: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -82,14 +130,14 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
           backgroundColor: const Color(0xFF0064E0),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
         ),
-        onPressed: () {
-          if (_passwordController.text.length < 6) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Mật khẩu phải có ít nhất 6 ký tự')),
-            );
-          }
-        },
-        child: const Text('Tiếp', style: TextStyle(color: Colors.white, fontSize: 16)),
+        onPressed: _isLoading ? null : _handleRegister,
+        child: _isLoading
+            ? const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+        )
+            : const Text('Tiếp', style: TextStyle(color: Colors.white, fontSize: 16)),
       ),
     );
   }
