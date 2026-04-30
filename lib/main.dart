@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:untitled/presentation/pages/newPost.dart';
+
 import 'Widgets/Features/Auth/Presentation/Pages/login_page.dart';
-import 'Widgets/Features/Home/Presentation/Pages/main_wrapper.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
           elevation: 0,
         ),
       ),
-      home: InstagramLoginDark(),
+      home: NewPostScreen(),
     );
   }
 }
