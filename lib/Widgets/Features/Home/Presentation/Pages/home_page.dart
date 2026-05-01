@@ -3,7 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import '../../../../../data/datasources/global/User.dart';
 import '../../../../../presentation/pages/newPost.dart';
-import '../../../../../presentation/widgets/Features1/Auth/Presentation/Pages/login_page.dart';
+import '../../../Auth/Presentation/Pages/login_page.dart';
 import '../../Models/mock_data.dart';
 import '../../Models/post_model.dart';
 import '../widgets/post_item.dart';

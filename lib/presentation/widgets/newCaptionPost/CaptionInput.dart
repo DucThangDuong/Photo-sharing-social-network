@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
 class NewCaptionInput extends StatelessWidget {
-  const NewCaptionInput({super.key});
+  final TextEditingController controller;
+
+  const NewCaptionInput({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
-        style: TextStyle(color: Colors.white),
+        controller: controller,
+        style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           hintText: 'Thêm chú thích...',
           hintStyle: TextStyle(color: Colors.grey, fontSize: 15),

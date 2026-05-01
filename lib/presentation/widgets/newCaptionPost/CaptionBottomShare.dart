@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class NewCaptionBottomShare extends StatelessWidget {
-  const NewCaptionBottomShare({super.key});
+  final VoidCallback? onPressed;
+  final bool isLoading;
+
+  const NewCaptionBottomShare({
+    super.key,
+    this.onPressed,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -11,7 +18,7 @@ class NewCaptionBottomShare extends StatelessWidget {
         width: double.infinity,
         color: Colors.black,
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed: isLoading ? null : onPressed,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF4C68FF),
             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -19,10 +26,19 @@ class NewCaptionBottomShare extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          child: const Text(
-            'Đăng tải',
-            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Text(
+                  'Đăng tải',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
         ),
       ),
     );
