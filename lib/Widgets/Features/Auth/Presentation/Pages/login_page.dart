@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:untitled/Widgets/Features/Auth/Presentation/Pages/register_page.dart';import '../../../../../data/datasources/ApiServices.dart';
-
 import '../../../Home/Presentation/Pages/main_wrapper.dart';
 import '../Widgets/Button/AuthButton.dart';
 import '../Widgets/InputField/AuthInputField.dart';
 import '../Widgets/Logo/Login_Logo.dart';
 import '../Widgets/Logo/MetaFooter.dart';
+import 'create_account_email.dart';
 import 'find_account_page.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:untitled/data/datasources/ApiServices.dart';
 
 class InstagramLoginDark extends StatefulWidget {
   @override
@@ -25,6 +25,7 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
     _passwordController.dispose();
     super.dispose();
   }
+
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -90,54 +91,75 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
+      // Giúp Scaffold tự động xử lý khi bàn phím hiện lên
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              const Spacer(flex: 1),
-              const LoginLogo(),
-              const SizedBox(height: 50),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              // Bọc nội dung để có thể cuộn khi bàn phím che khuất
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight, // Ép chiều cao tối thiểu bằng màn hình
+                ),
+                child: IntrinsicHeight(
+                  // IntrinsicHeight giúp các widget Spacer() hoạt động được bên trong SingleChildScrollView
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        const Spacer(flex: 1),
+                        const LoginLogo(),
+                        const SizedBox(height: 50),
 
-              // Ô nhập Email/User
-              AuthInputField(
-                controller: _emailController,
-                hint: 'Tên người dùng, email/số di động',
+                        // Ô nhập Email/User
+                        AuthInputField(
+                          controller: _emailController,
+                          hint: 'Tên người dùng, email/số di động',
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Ô nhập Mật khẩu
+                        AuthInputField(
+                          controller: _passwordController,
+                          hint: 'Mật khẩu',
+                          isPassword: true,
+                          isVisible: _isPasswordVisible,
+                          toggleVisibility: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        // Nút Đăng nhập
+                        AuthButton(
+                          label: _isLoading ? 'Đang đăng nhập...' : 'Đăng nhập',
+                          color: const Color(0xFF0064E0),
+                          onPressed: _isLoading ? () {} : _handleLogin,
+                        ),
+
+                        TextButton(
+                          onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const FindAccountPage())
+                          ),
+                          child: const Text('Quên mật khẩu?', style: TextStyle(color: Colors.white)),
+                        ),
+
+                        const Spacer(flex: 2),
+
+                        // Nút Tạo tài khoản (Nằm ở dưới cùng)
+                        _buildCreateAccountButton(),
+                        const SizedBox(height: 15),
+
+                        const MetaFooter(),
+                        const SizedBox(height: 10), // Khoảng trống nhỏ dưới cùng
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 12),
-
-              // Ô nhập Mật khẩu
-              AuthInputField(
-                controller: _passwordController,
-                hint: 'Mật khẩu',
-                isPassword: true,
-                isVisible: _isPasswordVisible,
-                toggleVisibility: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
-              ),
-
-              const SizedBox(height: 15),
-
-              // Nút Đăng nhập
-              AuthButton(
-                label: _isLoading ? 'Đang đăng nhập...' : 'Đăng nhập',
-                color: const Color(0xFF0064E0),
-                onPressed: _isLoading ? () {} : _handleLogin,
-              ),
-
-              TextButton(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FindAccountPage())),
-                child: const Text('Quên mật khẩu?', style: TextStyle(color: Colors.white)),
-              ),
-
-              const Spacer(flex: 2),
-
-              // Nút Tạo tài khoản (Style Outlined)
-              _buildCreateAccountButton(),
-              const SizedBox(height: 15),
-
-              const MetaFooter(),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -153,7 +175,7 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
           side: const BorderSide(color: Color(0xFF0064E0), width: 1.2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
         ),
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPhonePage())),
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterEmailPage())),
         child: const Text('Tạo tài khoản mới', style: TextStyle(color: Color(0xFF0064E0), fontWeight: FontWeight.bold)),
       ),
     );
