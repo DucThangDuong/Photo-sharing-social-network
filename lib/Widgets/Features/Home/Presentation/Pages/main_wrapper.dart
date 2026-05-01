@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../../data/datasources/ApiServices.dart';
-import '../../../../../data/datasources/DTOs/UserDTO.dart';
-import '../../../../../data/datasources/global/User.dart';
+import '../../../../../../data/datasources/ApiServices.dart';
+import '../../../../../../data/datasources/DTOs/UserDTO.dart';
+import '../../../../../../data/datasources/global/User.dart';
+import '../../../Profile/Presentation/Page/profile_page.dart';
 import 'home_page.dart';
 
 // Giả sử bạn đã tạo các file này
@@ -56,7 +57,7 @@ class _MainWrapperState extends State<MainWrapper> {
     const HomePage(),
     const Center(child: Text('Search Page', style: TextStyle(color: Colors.white))), // Placeholder
     const Center(child: Text('Reels Page', style: TextStyle(color: Colors.white))),  // Placeholder
-    const Center(child: Text('Profile Page', style: TextStyle(color: Colors.white))), // Placeholder
+    const ProfilePage(),
   ];
 
   @override
@@ -89,7 +90,7 @@ class _MainWrapperState extends State<MainWrapper> {
           backgroundColor: const Color(0xFF121212),
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.white54,
-          showSelectedLabels: false, // Instagram không hiện chữ dưới icon
+          showSelectedLabels: false,
           showUnselectedLabels: false,
           items: [
             const BottomNavigationBarItem(
