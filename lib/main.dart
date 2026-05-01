@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'widgets/Features/Auth/Presentation/Pages/login_page.dart';
-import 'Widgets/Features/Home/Presentation/Pages/main_wrapper.dart';
+import 'package:untitled/presentation/widgets/Features1/Auth/Presentation/Pages/RegisterNamePage.dart';
+import 'package:untitled/presentation/widgets/Features1/Auth/Presentation/Pages/login_page.dart';
+
 
 void main() {
   runApp(const MyApp());

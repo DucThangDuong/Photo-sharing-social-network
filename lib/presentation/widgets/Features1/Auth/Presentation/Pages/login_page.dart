@@ -8,6 +8,7 @@ import '../Widgets/Button/AuthButton.dart';
 import '../Widgets/InputField/AuthInputField.dart';
 import '../Widgets/Logo/Login_Logo.dart';
 import '../Widgets/Logo/MetaFooter.dart';
+import 'create_account_email.dart';
 import 'find_account_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
@@ -157,7 +158,7 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
           side: const BorderSide(color: Color(0xFF0064E0), width: 1.2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
         ),
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPhonePage())),
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterEmailPage())),
         child: const Text('Tạo tài khoản mới', style: TextStyle(color: Color(0xFF0064E0), fontWeight: FontWeight.bold)),
       ),
     );

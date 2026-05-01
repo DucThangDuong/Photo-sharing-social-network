@@ -64,11 +64,11 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
               ),
               const SizedBox(height: 15),
 
-              AuthButton( // 4. Nút Chuyển sang số điện thoại
-                label: 'Đăng ký bằng số di động',
-                color: const Color(0xFF262626),
-                onPressed: () => Navigator.pop(context),
-              ),
+              // AuthButton( // 4. Nút Chuyển sang số điện thoại
+              //   label: 'Đăng ký bằng số di động',
+              //   color: const Color(0xFF262626),
+              //   onPressed: () => Navigator.pop(context),
+              // ),
 
               const Spacer(),
               _buildFooter(), // 5. Chân trang

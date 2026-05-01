@@ -7,6 +7,7 @@ import '../../../../../../data/datasources/ApiServices.dart';
 import '../../../Home/Presentation/Pages/main_wrapper.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import 'RegisterNamePage.dart';
 import 'login_page.dart';
 
 class CreatePasswordPage extends StatefulWidget {
@@ -56,10 +57,9 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Tạo tài khoản thành công')),
         );
-        Navigator.pushAndRemoveUntil(
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => InstagramLoginDark()),
-          (route) => false,
+          MaterialPageRoute(builder: (context) => const RegisterNamePage()),
         );
       }
     } catch (e) {
