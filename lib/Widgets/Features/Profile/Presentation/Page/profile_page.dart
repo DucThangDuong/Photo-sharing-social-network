@@ -13,8 +13,6 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Giả lập lấy User hiện tại
-    // final User currentUser = MockData.getPosts()[0].user;
     final currentUser = context.watch<UserProvider>().user;
     if (currentUser == null) {
       return const Scaffold(

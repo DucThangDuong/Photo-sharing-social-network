@@ -55,7 +55,7 @@ class _FinalSharePostScreenState extends State<FinalSharePostScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đăng bài thành công!')),
         );
-        Navigator.pop(context); // Đóng màn hình đăng bài sau khi thành công
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
