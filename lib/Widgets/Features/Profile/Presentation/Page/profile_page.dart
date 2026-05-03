@@ -30,20 +30,23 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,//lấy màu background của thằng cha
+        backgroundColor: Colors.transparent,
         title: Row(
           children: [
-            Text(currentUser.username, style: const TextStyle(fontWeight: FontWeight.bold)),
+            // Fix lỗi tràn pixel ở tiêu đề
+            Expanded(
+              child: Text(
+                currentUser.username,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             const Icon(Icons.keyboard_arrow_down, size: 20),
           ],
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.add_box_outlined), onPressed: () {
-            print("them bai viet ne");
-          }),
-          IconButton(icon: const Icon(Icons.menu), onPressed: () {
-            print("menu ne");
-          }),
+          IconButton(icon: const Icon(Icons.add_box_outlined), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
         ],
       ),
       body: SingleChildScrollView( //cuộn màn hình lên xuống thoi

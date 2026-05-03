@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../../data/datasources/ApiServices.dart';
+import '../../../../../../Widgets/Features/Auth/Presentation/Widgets/InputField/NameAndUserNameInput.dart';
+import '../../../../../../data/datasources/ApiServices.dart';
 import '../Widgets/InputField/PasswordInputField.dart';
 import '../Widgets/Header/PasswordHeader.dart';
 import '../Widgets/Button/RememberMeOption.dart';
@@ -16,9 +17,12 @@ class CreatePasswordPage extends StatefulWidget {
 
 class _CreatePasswordPageState extends State<CreatePasswordPage> {
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _fullNameController = TextEditingController();
   bool _rememberPassword = true;
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  bool _isUsernameValid = false;
   // Logic xử lý link
   Future<void> _handleUrl() async {
     final Uri url = Uri.parse('https://help.instagram.com/1020536697967549');
@@ -84,37 +88,65 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
+      // Giúp giao diện tự đẩy lên khi bàn phím xuất hiện
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Sử dụng các Widget đã tách
-              const PasswordHeader(),
-              const SizedBox(height: 30),
+        child: LayoutBuilder( // Sử dụng LayoutBuilder để xử lý footer linh hoạt hơn
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  // Đảm bảo nội dung ít nhất phải bằng chiều cao màn hình
+                  minHeight: constraints.maxHeight,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: IntrinsicHeight( // Giúp Column nhận biết chiều cao thực tế
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const PasswordHeader(),
+                        const SizedBox(height: 30),
+                        NameAndUserNameInput(
+                          controller: _fullNameController,
+                          label: 'Tên đầy đủ',
+                          hint: 'Nhập tên của bạn',
+                          isValid: false,
+                        ),
+                        const SizedBox(height: 20),
+                        NameAndUserNameInput(
+                          controller: _usernameController,
+                          label: 'Tên người dùng',
+                          hint: 'Tên người dùng',
+                          isValid: _isUsernameValid,
+                        ),
+                        const SizedBox(height: 15),
+                        PasswordInputField(
+                          controller: _passwordController,
+                          isVisible: _isPasswordVisible,
+                          toggleVisibility: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                        ),
+                        const SizedBox(height: 15),
+                        RememberMeOption(
+                          value: _rememberPassword,
+                          onChanged: (val) => setState(() => _rememberPassword = val ?? true),
+                          onLearnMore: _handleUrl,
+                        ),
+                        const SizedBox(height: 30),
+                        _buildSubmitButton(),
 
-              PasswordInputField(
-                controller: _passwordController,
-                isVisible: _isPasswordVisible,
-                toggleVisibility: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                        // THAY THẾ Spacer() bằng SizedBox hoặc dùng logic giữ footer ở dưới
+                        const Expanded(child: SizedBox(height: 20)),
+
+                        _buildFooter(),
+                        const SizedBox(height: 10), // Khoảng cách nhỏ dưới cùng
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 15),
-
-              RememberMeOption(
-                value: _rememberPassword,
-                onChanged: (val) => setState(() => _rememberPassword = val ?? true),
-                onLearnMore: _handleUrl,
-              ),
-              const SizedBox(height: 30),
-
-              // Nút Tiếp tục
-              _buildSubmitButton(),
-
-              const Spacer(),
-              _buildFooter(),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
