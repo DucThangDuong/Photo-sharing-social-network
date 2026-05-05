@@ -7,9 +7,6 @@ import '../../../../../../data/datasources/global/User.dart';
 import '../../../Profile/Presentation/Page/profile_page.dart';
 import 'home_page.dart';
 
-// Giả sử bạn đã tạo các file này
-// import 'pages/search_page.dart';
-// import 'pages/profile_page.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -28,14 +25,9 @@ class _MainWrapperState extends State<MainWrapper> {
 
   Future<void> _fetchUserProfile() async {
     try {
-      // 1. Gọi API lấy dữ liệu như bạn viết
       final userRes = await ApiService().get('/user/profile');
-
-      // Kiểm tra an toàn trước khi map dữ liệu
       if (userRes != null && userRes['data'] != null) {
         UserModelDTO user = UserModelDTO.fromJson(userRes['data']);
-
-        // 2. Nạp vào kho Provider
         if (mounted) {
           Provider.of<UserProvider>(context, listen: false).setUser(user);
         }

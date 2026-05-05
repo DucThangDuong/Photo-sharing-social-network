@@ -47,23 +47,18 @@ class ProfilePage extends StatelessWidget {
           IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
         ],
       ),
-      body: SingleChildScrollView( //cuộn màn hình lên xuống thoi
+      body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // lấy ảnh đại diện và thong tin của tai khoan hien tai (dữ liệu giả thoi)
             ProfileHeader(user: currentUser),
-
-            // hiển thị tên, bio, nut bấm
             ProfileInfo(user: currentUser),
-
-            // gợi ý kết bạn ::::00000000
             DiscoverPeople(suggestedUsers: suggestions),
 
             const SizedBox(height: 20),
 
             // tab bar hinh ảnh , reel, tag
-            const DefaultTabController( //ddieuf kiển chuyển các tab
+            const DefaultTabController(
               length: 3,
               child: Column(
                 children: [

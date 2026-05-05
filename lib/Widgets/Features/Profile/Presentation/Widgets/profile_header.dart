@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../data/datasources/DTOs/UserDTO.dart';
+import '../../../../../presentation/pages/follower.dart';
 
 class ProfileHeader extends StatelessWidget {
   final UserModelDTO user;
@@ -8,32 +9,33 @@ class ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var imageUrl = 'http://10.0.2.2:5090'+user.avatarUrl.toString();
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10), //tạo khoảng cách bên trái phải trên dưới
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
       child: Row(
         children: [
-          // hiển thị ảnh dại diện và bóng ghi chú
-          Stack(//cho phép các widget trong children có thể chồng lên nhau
+          Stack(
             children: [
-              //bo tròn avater cho giống với inta thôi (khi có dữ liệu api thì lấy url gán vào đây)
               CircleAvatar(
                 radius: 45,
                 backgroundColor: Colors.grey[800],
-                backgroundImage: user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+                backgroundImage: user.avatarUrl != null ? NetworkImage(imageUrl) : null,
               ),
               // bong ghi chu
-              Positioned( //cho phép di chuyển trai phải lên xuống (để di chuyển bong bong lên trên hình avatar)
+              Positioned(
                 top: 0,
                 left: 0,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(  //viền khung lại và bo tròn goc đó ;;))
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
                     color: const Color(0xFF262626),
-                    borderRadius: BorderRadius.circular(15), //tròn góc ne
-                    border: Border.all(color: Colors.black, width: 1), //vien khung ne
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(
+                        color: Colors.black, width: 1),
                   ),
                   child: const Text(
-                    'Đang mê mẩn...',   //thich thay nội dung bong bóng cảm xúc fnaof thì thay vào đây
+                    'Đang mê mẩn...',
                     style: TextStyle(color: Colors.white, fontSize: 10),
                   ),
                 ),
@@ -41,14 +43,31 @@ class ProfileHeader extends StatelessWidget {
             ],
           ),
 
-          // các thong tin như so bài viết, so ngươi follow, so ngươi dang theo dõi
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatItem('0', 'bài viết'),  //khi nào kéo api thì thêm số bài viết có id user vào và đếm
-                _buildStatItem('10tr', 'người theo dõi'), //người theo dõi thì cũng vậy (lấy bảng follow)
-                _buildStatItem('2', 'đang theo dõi'), //như trên
+                _buildStatItem(user.postsNumber.toString(), 'bài viết'),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const FollowersPage(initialIndex: 0)),
+                    );
+                  },
+                  child: _buildStatItem(user.followersNumber.toString(), 'người theo dõi'),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const FollowersPage(initialIndex: 1)),
+                    );
+                  },
+                  child: _buildStatItem(user.followingsNumber.toString(), 'đang theo dõi'),
+                ),
               ],
             ),
           ),
@@ -57,7 +76,7 @@ class ProfileHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String count, String label) {
+  Widget _buildStatItem(String count, String label, ) {
     return Column(
       children: [
         Text(count, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
