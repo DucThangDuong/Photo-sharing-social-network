@@ -41,7 +41,6 @@ class _RegisterPhonePageState extends State<RegisterPhonePage> {
     final Uri url = Uri.parse('https://help.instagram.com/574047304429005');
 
     try {
-      // Thử mở trực tiếp với mode externalApplication
       bool launched = await launchUrl(
         url,
         mode: LaunchMode.externalApplication,

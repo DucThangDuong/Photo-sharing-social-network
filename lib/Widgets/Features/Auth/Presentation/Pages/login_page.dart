@@ -86,10 +86,6 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       // Giúp Scaffold tự động xử lý khi bàn phím hiện lên
       resizeToAvoidBottomInset: true,

@@ -32,6 +32,8 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
   }
   Future<void> _handleRegister() async {
     final password = _passwordController.text.trim();
+    final username = _usernameController.text.trim();
+    final fullName = _fullNameController.text.trim();
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Mật khẩu phải có ít nhất 6 ký tự')),
@@ -49,6 +51,8 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
         data: {
           'Email': widget.email,
           'Password': password,
+          'UserName': username,
+          'FullName': fullName,
         },
       );
       if (mounted) {
@@ -88,20 +92,18 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      // Giúp giao diện tự đẩy lên khi bàn phím xuất hiện
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: LayoutBuilder( // Sử dụng LayoutBuilder để xử lý footer linh hoạt hơn
+        child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  // Đảm bảo nội dung ít nhất phải bằng chiều cao màn hình
                   minHeight: constraints.maxHeight,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: IntrinsicHeight( // Giúp Column nhận biết chiều cao thực tế
+                  child: IntrinsicHeight(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -135,11 +137,10 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
                         const SizedBox(height: 30),
                         _buildSubmitButton(),
 
-                        // THAY THẾ Spacer() bằng SizedBox hoặc dùng logic giữ footer ở dưới
                         const Expanded(child: SizedBox(height: 20)),
 
                         _buildFooter(),
-                        const SizedBox(height: 10), // Khoảng cách nhỏ dưới cùng
+                        const SizedBox(height: 10),
                       ],
                     ),
                   ),

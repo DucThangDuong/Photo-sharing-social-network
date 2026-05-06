@@ -59,7 +59,7 @@ class _ProfilePostGridState extends State<ProfilePostGrid> {
     }
 
     return GridView.builder(
-      shrinkWrap: true, // cho phép cuộn trong siglescrollview
+      shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3, //ngang 3 hình
