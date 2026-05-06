@@ -5,6 +5,7 @@ import '../../../../../../data/datasources/ApiServices.dart';
 import '../../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../../data/datasources/global/User.dart';
 import '../../../Profile/Presentation/Page/profile_page.dart';
+import '../../../Search/Presentation/Page/search_page.dart';
 import 'home_page.dart';
 
 
@@ -47,7 +48,7 @@ class _MainWrapperState extends State<MainWrapper> {
   // Danh sách các trang tương ứng với các nút ở thanh bên dưới
   final List<Widget> _pages = [
     const HomePage(),
-    const Center(child: Text('Search Page', style: TextStyle(color: Colors.white))), // Placeholder
+    const SearchPage(),
     const Center(child: Text('Reels Page', style: TextStyle(color: Colors.white))),  // Placeholder
     const ProfilePage(),
   ];
