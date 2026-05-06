@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../Profile/Presentation/Widgets/comment_bottom_sheet.dart';
 import '../../Models/post_model.dart';
 import 'post_media_slider.dart';
 
@@ -13,7 +14,17 @@ class PostItem extends StatefulWidget {
 class _PostItemState extends State<PostItem> {
   bool _isLiked = false;
   bool _isFollowed = false;
-
+  void _showComments(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Cho phép đẩy lên khi hiện bàn phím
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => CommentBottomSheet(post: widget.post),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -60,7 +71,7 @@ class _PostItemState extends State<PostItem> {
               ),
               onPressed: () => setState(() => _isLiked = !_isLiked),
             ),
-            IconButton(icon: const Icon(Icons.mode_comment_outlined, color: Colors.white), onPressed: () {}),
+            IconButton(icon: const Icon(Icons.mode_comment_outlined, color: Colors.white), onPressed: () =>_showComments(context)),
             IconButton(icon: const Icon(Icons.send_outlined, color: Colors.white), onPressed: () {}),
             const Spacer(),
             IconButton(icon: const Icon(Icons.bookmark_border, color: Colors.white), onPressed: () {}),

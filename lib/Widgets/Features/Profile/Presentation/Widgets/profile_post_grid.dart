@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
 
+import '../Page/UserPostsDetailPage.dart';
+
 class ProfilePostGrid extends StatefulWidget {
   const ProfilePostGrid({super.key});
 
@@ -79,15 +81,24 @@ class _ProfilePostGridState extends State<ProfilePostGrid> {
           }
         }
 
-        return Container(
-          color: Colors.grey[900],
-          child: imageUrl.isNotEmpty
-              ? Image.network(
-                  imageUrl, 
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, color: Colors.grey),
-                )
-              : const Icon(Icons.image_not_supported, color: Colors.grey),
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UserPostsDetailPage(
+                  posts: posts, // Truyền danh sách bài viết đã lấy từ API
+                  initialIndex: index, // Vị trí bài viết người dùng nhấn vào
+                ),
+              ),
+            );
+          },
+          child: Container(
+            color: Colors.grey[900],
+            child: imageUrl.isNotEmpty
+                ? Image.network(imageUrl, fit: BoxFit.cover)
+                : const Icon(Icons.image_not_supported, color: Colors.grey),
+          ),
         );
       },
     );
