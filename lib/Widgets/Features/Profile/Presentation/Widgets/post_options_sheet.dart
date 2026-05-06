@@ -28,7 +28,7 @@ class PostOptionsSheet extends StatelessWidget {
           _buildOptionItem(Icons.mode_comment_outlined, 'Tắt tính năng bình luận', () {}),
           const Divider(color: Colors.white12),
           _buildOptionItem(Icons.delete_outline, 'Xóa bài viết', () {
-            // Gọi API xóa bài viết của Thành ở đây
+            // gọi api xóa bai viêt
           }, isDanger: true),
         ],
       ),
