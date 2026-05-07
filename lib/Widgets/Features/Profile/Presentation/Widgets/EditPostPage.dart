@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-
 import '../../../../../data/datasources/ApiServices.dart';
+import '../../../../../data/datasources/DTOs/PostDTO.dart';
 
 class EditPostPage extends StatefulWidget {
-  final dynamic post;
+  final PostDetailUserDTO post;
   const EditPostPage({super.key, required this.post});
 
   @override
@@ -18,7 +18,7 @@ class _EditPostPageState extends State<EditPostPage> {
   void initState() {
     super.initState();
     // Gán caption hiện tại vào ô nhập liệu
-    _captionController = TextEditingController(text: widget.post['caption']);
+    _captionController = TextEditingController(text: widget.post.caption);
   }
 
   Future<void> _handleUpdate() async {
@@ -27,13 +27,17 @@ class _EditPostPageState extends State<EditPostPage> {
       // Giả sử Thành tạo thêm API PUT /user/posts/update/{id} ở Backend
       //tự thêm api của m vô nha
       final response = await ApiService().put(
-        '/user/posts/update/${widget.post['id']}',
+        '/user/posts/update/${widget.post.id}',
         data: {'Caption': _captionController.text.trim()},
       );
 
-      if (mounted && response['success'] == true) {
+      if (mounted && response != null && response['data'] != null) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật thành công')));
-        Navigator.pop(context, true); // Trở về và báo hiệu đã cập nhật
+        PostDetailUserDTO updatedPost = PostDetailUserDTO.fromJson(response['data']);
+        Navigator.pop(context, updatedPost);
+      } else if (mounted && response != null && response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cập nhật thành công')));
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
@@ -47,25 +51,21 @@ class _EditPostPageState extends State<EditPostPage> {
   @override
   Widget build(BuildContext context) {
     // Đảm bảo cộng đúng chuỗi localhost/10.0.2.2 cho máy ảo
-    String imageUrl = 'http://10.0.2.2:5090' + widget.post['postMedia'][0]['mediaUrl'];
+    String imageUrl = widget.post.postMedia.isNotEmpty ? 'http://10.0.2.2:5090' + widget.post.postMedia[0].mediaUrl : '';
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        // ... (giữ nguyên phần AppBar cũ) ...
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // 1. Header người dùng
             ListTile(
               leading: const CircleAvatar(radius: 18, backgroundColor: Colors.grey),
               title: const Text('amisunami2', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
             ),
-
-            // 2. PHẦN SỬA LỖI: Hiển thị hình ảnh theo tỷ lệ
             AspectRatio(
-              aspectRatio: 1, // Tỷ lệ 1:1 (ảnh vuông) - bạn có thể chỉnh thành 4/5 nếu muốn ảnh dọc
+              aspectRatio: 1,
               child: Container(
                 width: double.infinity,
                 color: Colors.grey[900], // Màu nền khi ảnh chưa tải xong

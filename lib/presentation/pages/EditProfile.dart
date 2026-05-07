@@ -241,7 +241,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               const SizedBox(height: 20),
 
-              // Nút Chỉnh sửa / Lưu ở dưới cùng
+
               if (_isDirty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -262,7 +262,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           }
 
                           var formData = FormData.fromMap({
-                            'FullName': _nameController.text.trim(), // Nên viết hoa chữ cái đầu cho khớp hoàn toàn với C# DTO
+                            'FullName': _nameController.text.trim(),
                             'Username': _usernameController.text.trim(),
                             'Bio': _bioController.text.trim(),
                             'Gender': getGenderValue(_genderController.text.trim()),

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
-
+import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../Page/UserPostsDetailPage.dart';
 
 class ProfilePostGrid extends StatefulWidget {
@@ -12,7 +12,7 @@ class ProfilePostGrid extends StatefulWidget {
 }
 
 class _ProfilePostGridState extends State<ProfilePostGrid> {
-  List<dynamic> posts = [];
+  List<PostSummaryDTO> posts = [];
   bool isLoading = true;
 
   @override
@@ -23,10 +23,11 @@ class _ProfilePostGridState extends State<ProfilePostGrid> {
 
   Future<void> _fetchPosts() async {
     try {
-      final response = await ApiService().get('/user/posts');
+      final response = await ApiService().get('/user/postsSummary');
       if (mounted) {
         setState(() {
-          posts = response['data'] ?? [];
+          var rawList = response['data'] as List? ?? [];
+          posts = rawList.map((i) => PostSummaryDTO.fromJson(i)).toList();
           isLoading = false;
         });
       }
@@ -64,18 +65,18 @@ class _ProfilePostGridState extends State<ProfilePostGrid> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, //ngang 3 hình
+        crossAxisCount: 3,
         crossAxisSpacing: 2,
         mainAxisSpacing: 2,
       ),
       itemCount: posts.length,
       itemBuilder: (context, index) {
         final post = posts[index];
-        final List<dynamic>? mediaList = post['postMedia'];
+        final mediaList = post.postMedia;
         String imageUrl = '';
 
-        if (mediaList != null && mediaList.isNotEmpty) {
-          imageUrl = 'http://10.0.2.2:5090'+mediaList[0]['mediaUrl'] ?? '';
+        if (mediaList.isNotEmpty) {
+          imageUrl = 'http://10.0.2.2:5090' + mediaList[0].mediaUrl;
           if (imageUrl.contains('localhost')) {
             imageUrl = imageUrl.replaceAll('localhost', '10.0.2.2');
           }
@@ -87,8 +88,7 @@ class _ProfilePostGridState extends State<ProfilePostGrid> {
               context,
               MaterialPageRoute(
                 builder: (context) => UserPostsDetailPage(
-                  posts: posts, // Truyền danh sách bài viết đã lấy từ API
-                  initialIndex: index, // Vị trí bài viết người dùng nhấn vào
+                  initialIndex: index,
                 ),
               ),
             );

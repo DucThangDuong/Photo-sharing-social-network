@@ -28,7 +28,7 @@ class ProfileInfo extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
-                  children: [ //khi keo api thi thay vào link bio vao
+                  children: [
                     const Icon(
                         Icons.alternate_email, color: Colors.white, size: 12),
                     Text(user.username, style: const TextStyle(

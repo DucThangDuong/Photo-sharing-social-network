@@ -1,16 +1,77 @@
 import 'package:flutter/material.dart';
+import '../../../../../data/datasources/local/SearchCacheService.dart';
 
-class RecentSearchList extends StatelessWidget {
+class RecentSearchList extends StatefulWidget {
   const RecentSearchList({super.key});
 
   @override
+  State<RecentSearchList> createState() => _RecentSearchListState();
+}
+
+class _RecentSearchListState extends State<RecentSearchList> {
+  List<Map<String, String>> _recentSearches = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSearches();
+  }
+
+  Future<void> _loadSearches() async {
+    final searches = await SearchCacheService.getRecentSearches();
+    if (mounted) {
+      setState(() {
+        _recentSearches = searches;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _removeSearch(String query) async {
+    await SearchCacheService.removeSearch(query);
+    setState(() {
+      _recentSearches.removeWhere((item) => item['query'] == query);
+    });
+  }
+
+  Future<void> _clearAll() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text('Xác nhận', style: TextStyle(color: Colors.white)),
+        content: const Text('Bạn có chắc muốn xóa tất cả lịch sử tìm kiếm?', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Hủy', style: TextStyle(color: Colors.white)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Xóa tất cả', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await SearchCacheService.clearAll();
+      setState(() => _recentSearches.clear());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Dữ liệu giả lập, sau này Thành có thể lấy từ Local Storage hoặc API
-    final List<Map<String, String>> recentSearches = [
-      {'name': 'Đinh Tấn Thành', 'subtitle': 'dinhtan6974', 'type': 'user'},
-      {'name': 'HUIT News', 'subtitle': 'Trường Đại học Công Thương', 'type': 'user'},
-      {'name': 'Flutter Vietnam', 'subtitle': 'Cộng đồng lập nghiệp', 'type': 'tag'},
-    ];
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_recentSearches.isEmpty) {
+      return const Center(
+        child: Text('Không có tìm kiếm gần đây', style: TextStyle(color: Colors.grey)),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,9 +90,9 @@ class RecentSearchList extends StatelessWidget {
                 ),
               ),
               GestureDetector(
-                onTap: () => print("Xóa tất cả tìm kiếm"),
+                onTap: _clearAll,
                 child: const Text(
-                  'Xem tất cả',
+                  'Xóa tất cả',
                   style: TextStyle(
                     color: Color(0xFF0064E0),
                     fontWeight: FontWeight.bold,
@@ -44,32 +105,26 @@ class RecentSearchList extends StatelessWidget {
         ),
         Expanded(
           child: ListView.builder(
-            itemCount: recentSearches.length,
+            itemCount: _recentSearches.length,
             itemBuilder: (context, index) {
-              final item = recentSearches[index];
+              final item = _recentSearches[index];
+              final query = item['query'] ?? '';
               return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF262626),
-                  backgroundImage: item['type'] == 'user'
-                      ? const NetworkImage('https://via.placeholder.com/150')
-                      : null,
-                  child: item['type'] == 'tag'
-                      ? const Icon(Icons.tag, color: Colors.white)
-                      : null,
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFF262626),
+                  child: Icon(Icons.history, color: Colors.white),
                 ),
                 title: Text(
-                  item['name']!,
+                  query,
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                ),
-                subtitle: Text(
-                  item['subtitle']!,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 trailing: IconButton(
                   icon: const Icon(Icons.close, color: Colors.grey, size: 20),
-                  onPressed: () => print("Xóa mục này"),
+                  onPressed: () => _removeSearch(query),
                 ),
-                onTap: () => print("Chuyển đến trang của ${item['name']}"),
+                onTap: () {
+                  // Có thể trigger tìm kiếm lại với query này
+                },
               );
             },
           ),

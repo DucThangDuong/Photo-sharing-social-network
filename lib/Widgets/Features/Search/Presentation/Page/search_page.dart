@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../../../../../data/datasources/local/SearchCacheService.dart';
 import '../Widget/discovery_grid.dart';
 import '../Widget/recent_search_list.dart';
 import '../Widget/search_input_field.dart';
@@ -63,7 +63,12 @@ class _SearchPageState extends State<SearchPage> {
                 _focusNode.unfocus();
                 setState(() => _isSearching = _isSubmitted = false);
               },
-              onSubmitted: (val) => setState(() => _isSubmitted = true),
+              onSubmitted: (val) {
+                if (val.trim().isNotEmpty) {
+                  SearchCacheService.addSearch(val.trim());
+                }
+                setState(() => _isSubmitted = true);
+              },
             ),
             Expanded(
               child: _buildContent(),
@@ -85,7 +90,7 @@ class _SearchPageState extends State<SearchPage> {
       );
     }
     if (_isSearching) {
-      return const RecentSearchList(); // lưu thông tin lịch sử tìm kiếm gần đây
+      return const RecentSearchList();
     }
     return DiscoveryGrid(posts: _posts, isLoading: false);
   }

@@ -60,7 +60,8 @@ class HomePage extends StatelessWidget {
       body: ListView.builder(
         itemCount: posts.length,
         itemBuilder: (context, index) {
-          return PostItem(post: posts[index]);
+          // return PostItem(post: posts[index]);
+          return Text('Post $index');
         },
       ),
     );
