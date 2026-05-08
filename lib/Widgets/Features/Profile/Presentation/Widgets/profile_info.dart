@@ -55,7 +55,7 @@ class ProfileInfo extends StatelessWidget {
               Expanded(
                   child: _buildActionButton('Chia sẻ trang cá nhân', () {})),
               const SizedBox(width: 8),
-              // gợi ý kết ban
+              // nút bấm thêm bạn
               GestureDetector(
                 onTap: () {},
                 child: Container(
@@ -80,7 +80,7 @@ class ProfileInfo extends StatelessWidget {
 
   Widget _buildActionButton(String label, VoidCallback onPressed) {
     return GestureDetector(
-      onTap: onPressed, // Gán logic khi nhấn vào đây
+      onTap: onPressed,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         alignment: Alignment.center,

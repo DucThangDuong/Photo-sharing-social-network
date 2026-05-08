@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../data/datasources/DTOs/UserDTO.dart';
+import '../../data/datasources/ApiServices.dart';
 import '../../data/datasources/global/User.dart';
+import '../../data/Helper.dart';
 import '../widgets/follower/FollowerAppBar.dart';
 import '../widgets/follower/EmptyFollowerState.dart';
 import '../widgets/follower/UserSuggestionTile.dart';
@@ -15,15 +18,80 @@ class FollowersPage extends StatefulWidget {
 }
 
 class _FollowersPageState extends State<FollowersPage> {
-  final List<Map<String, String>> suggestedUsers = [
-    {'name': 'Thành Tài', 'avatar': 'https://picsum.photos/id/1011/100/100'},
-    {'name': 'vịu_ơ 💓', 'avatar': 'https://picsum.photos/id/1012/100/100'},
-    {'name': 'Hoàng Đô', 'avatar': 'https://picsum.photos/id/1013/100/100'},
-    {'name': 'Thuỳ Dương', 'avatar': 'https://picsum.photos/id/1014/100/100'},
-    {'name': 'Gia Huy', 'avatar': 'https://picsum.photos/id/1015/100/100'},
-    {'name': 'Võ Thị Thùy Linh', 'avatar': 'https://picsum.photos/id/1016/100/100'},
-    {'name': 'Quỳnh Anh', 'avatar': 'https://picsum.photos/id/1018/100/100'},
-  ];
+  List<SummaryUserDTO> _followers = [];
+  List<SuggestedUserDTO> _followings = [];
+  List<SuggestedUserDTO> _suggestions = [];
+  bool _isLoadingFollowers = true;
+  bool _isLoadingFollowings = true;
+  bool _isLoadingSuggestions = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentUser = context
+          .read<UserProvider>()
+          .user;
+      if (currentUser != null) {
+        _fetchFollowers(currentUser.id);
+        _fetchFollowings(currentUser.id);
+        _fetchSuggestions();
+      }
+    });
+  }
+
+  // Lấy danh sách người theo dõi mình
+  Future<void> _fetchFollowers(int userId) async {
+    try {
+      final response = await ApiService().get('/user/$userId/followers');
+      if (mounted) {
+        setState(() {
+          var rawList = response['data'] as List? ?? [];
+          _followers = rawList.map((i) => SummaryUserDTO.fromJson(i)).toList();
+          _isLoadingFollowers = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching followers: $e');
+      if (mounted) setState(() => _isLoadingFollowers = false);
+    }
+  }
+
+  // Lấy danh sách người mình đang theo dõi
+  Future<void> _fetchFollowings(int userId) async {
+    try {
+      final response = await ApiService().get('/user/$userId/following');
+      if (mounted) {
+        setState(() {
+          var rawList = response['data'] as List? ?? [];
+          _followings =
+              rawList.map((i) => SuggestedUserDTO.fromJson(i)).toList();
+          _isLoadingFollowings = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching followings: $e');
+      if (mounted) setState(() => _isLoadingFollowings = false);
+    }
+  }
+
+  // Lấy danh sách gợi ý
+  Future<void> _fetchSuggestions() async {
+    try {
+      final response = await ApiService().get('/user/suggestions');
+      if (mounted) {
+        setState(() {
+          var rawList = response['data'] as List? ?? [];
+          _suggestions =
+              rawList.map((i) => SuggestedUserDTO.fromJson(i)).toList();
+          _isLoadingSuggestions = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching suggestions: $e');
+      if (mounted) setState(() => _isLoadingSuggestions = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,22 +122,20 @@ class _FollowersPageState extends State<FollowersPage> {
               dividerColor: Colors.white12,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.grey,
-              labelStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-              unselectedLabelStyle: TextStyle(
+              labelStyle: const TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.bold),
+              unselectedLabelStyle: const TextStyle(
                   fontSize: 15, fontWeight: FontWeight.w500),
               tabs: [
-                Tab(text: currentUser.followersNumber.toString() +
-                    ' người theo dõi'),
-                Tab(text: currentUser.followingsNumber.toString() +
-                    ' đang theo dõi'),
+                Tab(text: '${currentUser.followersNumber} người theo dõi'),
+                Tab(text: '${currentUser.followingsNumber} đang theo dõi'),
               ],
             ),
             Expanded(
               child: TabBarView(
                 children: [
                   _buildFollowersTab(),
-                  const Center(child: Text(
-                      'Đang theo dõi', style: TextStyle(color: Colors.white))),
+                  _buildFollowingsTab(),
                 ],
               ),
             ),
@@ -79,44 +145,143 @@ class _FollowersPageState extends State<FollowersPage> {
     );
   }
 
+  Widget _buildUserTile(SummaryUserDTO user) {
+    String avatarUrl = user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+        ? AppHelper.formatImageURL(user.avatarUrl!)
+        : '';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: Colors.grey[800],
+            backgroundImage: avatarUrl.isNotEmpty
+                ? NetworkImage(avatarUrl)
+                : null,
+            child: avatarUrl.isEmpty
+                ? const Icon(Icons.person, color: Colors.white, size: 28)
+                : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.username,
+                  style: const TextStyle(color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (user.fullName != null && user.fullName!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    user.fullName!,
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Tab: Người theo dõi mình
   Widget _buildFollowersTab() {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const SizedBox(height: 40),
-          const EmptyFollowerState(),
-          const SizedBox(height: 30),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-              child: const Text(
-                'Gợi ý cho bạn',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          if (_isLoadingFollowers)
+            const Padding(
+              padding: EdgeInsets.all(30),
+              child: Center(
+                  child: CircularProgressIndicator(color: Colors.white54)),
+            )
+          else
+            if (_followers.isEmpty) ...[
+              const SizedBox(height: 40),
+              const EmptyFollowerState(),
+            ] else
+              ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: _followers.length,
+                itemBuilder: (context, index) {
+                  return _buildUserTile(_followers[index]);
+                },
+              ),
+
+          const SizedBox(height: 20),
+
+          if (!_isLoadingSuggestions && _suggestions.isNotEmpty) ...[
+            const Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Padding(
+                padding: EdgeInsets.only(left: 16, top: 8, bottom: 8),
+                child: Text(
+                  'Gợi ý cho bạn',
+                  style: TextStyle(color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                ),
               ),
             ),
-          ),
+            ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: _suggestions.length,
+              itemBuilder: (context, index) {
+                return UserSuggestionTile(
+                  user: _suggestions[index],
+                  onRemovePressed: () {
+                    setState(() {
+                      _suggestions.removeAt(index);
+                    });
+                  },
+                );
+              },
+            ),
+          ],
 
-          // Danh sách người dùng
-          ListView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: suggestedUsers.length,
-            itemBuilder: (context, index) {
-              final user = suggestedUsers[index];
-              return UserSuggestionTile(
-                name: user['name']!,
-                avatarUrl: user['avatar']!,
-                onFollowPressed: () {},
-                onRemovePressed: () {},
-              );
-            },
-          ),
           const SizedBox(height: 30),
         ],
       ),
+    );
+  }
+  // người mình đang theo dõi
+  Widget _buildFollowingsTab() {
+    if (_isLoadingFollowings) {
+      return const Center(
+          child: CircularProgressIndicator(color: Colors.white54));
+    }
+
+    if (_followings.isEmpty) {
+      return const Center(
+        child: Text('Bạn chưa theo dõi ai',
+            style: TextStyle(color: Colors.grey, fontSize: 16)),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: _followings.length,
+      itemBuilder: (context, index) {
+        return UserSuggestionTile(
+          user: _followings[index], onRemovePressed: () {
+          setState(() {
+            _suggestions.removeAt(index);
+          });
+        },);
+      },
     );
   }
 }

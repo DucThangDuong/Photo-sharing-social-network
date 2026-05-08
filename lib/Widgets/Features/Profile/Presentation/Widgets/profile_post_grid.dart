@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:untitled/data/Helper.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../Page/UserPostsDetailPage.dart';
@@ -74,12 +75,8 @@ class _ProfilePostGridState extends State<ProfilePostGrid> {
         final post = posts[index];
         final mediaList = post.postMedia;
         String imageUrl = '';
-
         if (mediaList.isNotEmpty) {
-          imageUrl = 'http://10.0.2.2:5090' + mediaList[0].mediaUrl;
-          if (imageUrl.contains('localhost')) {
-            imageUrl = imageUrl.replaceAll('localhost', '10.0.2.2');
-          }
+          imageUrl = AppHelper.formatImageURL(mediaList[0].mediaUrl);
         }
 
         return GestureDetector(

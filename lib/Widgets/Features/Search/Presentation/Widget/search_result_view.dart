@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
+import '../../../../../data/datasources/DTOs/PostDTO.dart';
+import '../../../../../data/datasources/DTOs/UserDTO.dart';
+import '../../../../../data/Helper.dart';
 
 class SearchResultView extends StatelessWidget {
   final String selectedType;
   final String query;
-  final List<dynamic> userResults; // Thêm biến này
-  final List<dynamic> postResults; // Thêm biến này
+  final List<SuggestedUserDTO> userResults;
+  final List<PostSummaryDTO> postResults;
+  final bool isLoading;
   final Function(String) onTypeChanged;
 
   const SearchResultView({
     super.key,
     required this.selectedType,
     required this.query,
-    required this.userResults, // Yêu cầu truyền vào
-    required this.postResults, // Yêu cầu truyền vào
+    required this.userResults,
+    required this.postResults,
+    required this.isLoading,
     required this.onTypeChanged,
   });
 
@@ -26,37 +31,47 @@ class SearchResultView extends StatelessWidget {
             _buildTab('Bài viết', 'Posts'),
           ],
         ),
-        // THAY THẾ PHẦN NÀY:
         Expanded(
-          child: selectedType == 'Users'
-              ? _buildUserList()
-              : _buildPostGrid(),
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator(color: Colors.white54))
+              : selectedType == 'Users'
+                  ? _buildUserList()
+                  : _buildPostGrid(),
         ),
       ],
     );
   }
 
-  // Hàm vẽ danh sách người dùng
   Widget _buildUserList() {
+    if (userResults.isEmpty) {
+      return const Center(child: Text('Không tìm thấy người dùng', style: TextStyle(color: Colors.grey)));
+    }
+
     return ListView.builder(
       itemCount: userResults.length,
       itemBuilder: (context, index) {
         final user = userResults[index];
+        String avatarUrl = user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+            ? AppHelper.formatImageURL(user.avatarUrl!)
+            : '';
         return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: NetworkImage(user['avatar']),
-          ),
-          title: Text(user['username'],
+          leading: avatarUrl.isNotEmpty
+              ? CircleAvatar(backgroundImage: NetworkImage(avatarUrl))
+              : const CircleAvatar(backgroundColor: Colors.grey, child: Icon(Icons.person, color: Colors.white)),
+          title: Text(user.username,
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          subtitle: Text(user['name'],
+          subtitle: Text(user.fullName ?? '',
               style: const TextStyle(color: Colors.grey)),
         );
       },
     );
   }
 
-  // Hàm vẽ lưới bài viết
   Widget _buildPostGrid() {
+    if (postResults.isEmpty) {
+      return const Center(child: Text('Không tìm thấy bài viết', style: TextStyle(color: Colors.grey)));
+    }
+
     return GridView.builder(
       padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -68,7 +83,13 @@ class SearchResultView extends StatelessWidget {
       itemCount: postResults.length,
       itemBuilder: (context, index) {
         final post = postResults[index];
-        return Image.network(post['imageUrl'], fit: BoxFit.cover);
+        String imageUrl = post.postMedia.isNotEmpty
+            ? AppHelper.formatImageURL(post.postMedia[0].mediaUrl)
+            : '';
+        return imageUrl.isNotEmpty
+            ? Image.network(imageUrl, fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[900]))
+            : Container(color: Colors.grey[900]);
       },
     );
   }

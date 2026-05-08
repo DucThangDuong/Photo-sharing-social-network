@@ -27,7 +27,7 @@ class EditProfileField extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Nhãn bên trái (Có chiều rộng cố định để căn chỉnh)
+              // Nhãn bên trái
               SizedBox(
                 width: 100,
                 child: Text(
@@ -47,20 +47,18 @@ class EditProfileField extends StatelessWidget {
                   style: const TextStyle(color: Colors.white, fontSize: 15),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
-                    // Không có đường viền ô
                     focusedBorder: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     errorBorder: InputBorder.none,
                     disabledBorder: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
-                        vertical: 12), // Tăng padding để dễ chạm
+                        vertical: 12),
                   ),
                 ),
               ),
             ],
           ),
         ),
-        // Đường chia mờ
         const Divider(color: _borderColor, height: 1, indent: 16),
       ],
     );

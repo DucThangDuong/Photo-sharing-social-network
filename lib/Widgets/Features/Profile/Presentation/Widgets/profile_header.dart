@@ -21,25 +21,6 @@ class ProfileHeader extends StatelessWidget {
                 backgroundColor: Colors.grey[800],
                 backgroundImage: user.avatarUrl != null ? NetworkImage(imageUrl) : null,
               ),
-              // bong ghi chu
-              Positioned(
-                top: 0,
-                left: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF262626),
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                        color: Colors.black, width: 1),
-                  ),
-                  child: const Text(
-                    'Đang mê mẩn...',
-                    style: TextStyle(color: Colors.white, fontSize: 10),
-                  ),
-                ),
-              ),
             ],
           ),
 

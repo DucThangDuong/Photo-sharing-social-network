@@ -49,9 +49,6 @@ class ApiService {
     return _request(() => _dio.delete(path, data: data));
   }
 
-  // ==========================================
-  // 4. HÀM XỬ LÝ LỖI GỘP CHUNG (Rất quan trọng)
-  // ==========================================
   Future<dynamic> _request(Future<Response> Function() requestFunc) async {
     try {
       final response = await requestFunc();

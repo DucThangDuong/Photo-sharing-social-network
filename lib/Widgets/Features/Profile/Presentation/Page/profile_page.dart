@@ -1,15 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../../../data/Models/User.dart';
-import '../../../../../../data/Models/mock_data.dart';
+import '../../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../../data/datasources/global/User.dart';
+import '../../../../../../data/datasources/ApiServices.dart';
 import '../Widgets/discover_people.dart';
 import '../Widgets/profile_header.dart';
 import '../Widgets/profile_info.dart';
 import '../Widgets/profile_post_grid.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  List<SuggestedUserDTO> _suggestions = [];
+  bool _isLoadingSuggestions = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSuggestions();
+  }
+
+  Future<void> _fetchSuggestions() async {
+    try {
+      // Gọi API lấy danh sách bạn bè gợi ý
+      final response = await ApiService().get('/user/suggestions');
+      if (mounted) {
+        setState(() {
+          var rawList = response['data'] as List? ?? [];
+          _suggestions = rawList.map((i) => SuggestedUserDTO.fromJson(i)).toList();
+          _isLoadingSuggestions = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingSuggestions = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +54,6 @@ class ProfilePage extends StatelessWidget {
         ),
       );
     }
-    //danh sách bạn bè gợi ý
-    final List<User> suggestions = MockData.getSuggestedUsers();
 
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
@@ -31,10 +61,9 @@ class ProfilePage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         title: Row(
           children: [
-            // Fix lỗi tràn pixel ở tiêu đề
             Expanded(
               child: Text(
-                currentUser.username,
+                currentUser.fullName ?? currentUser.username,
                 style: const TextStyle(fontWeight: FontWeight.bold),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -51,9 +80,14 @@ class ProfilePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // lấy thông tin cơ bản
             ProfileHeader(user: currentUser),
+            // các button chỉnh sửa, chia sẻ trang cá nhân, thêm bạn
             ProfileInfo(user: currentUser),
-            DiscoverPeople(suggestedUsers: suggestions),
+            // danh sách bạn bè gợi ý
+            _isLoadingSuggestions 
+                ? const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+                : DiscoverPeople(suggestedUsers: _suggestions),
 
             const SizedBox(height: 20),
 
@@ -70,7 +104,7 @@ class ProfilePage extends StatelessWidget {
                       Tab(icon: Icon(Icons.assignment_ind_outlined)),
                     ],
                   ),
-                  // Phần này thường dùng Sliver hoặc Fix height cho Grid
+                  // các bài viết của người dùng
                   ProfilePostGrid(),
                 ],
               ),

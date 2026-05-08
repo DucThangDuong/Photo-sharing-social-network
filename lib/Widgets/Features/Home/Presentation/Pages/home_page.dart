@@ -1,38 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
+import '../../../../../data/datasources/DTOs/PostDTO.dart';
+import '../../../../../data/datasources/ApiServices.dart';
 import '../../../../../data/datasources/global/User.dart';
 import '../../../../../presentation/pages/newPost.dart';
 import '../../../Auth/Presentation/Pages/login_page.dart';
-import '../../Models/mock_data.dart';
-import '../../Models/post_model.dart';
-import '../widgets/post_item.dart';
+import '../Widgets/post_item.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Lấy dữ liệu mẫu đã tạo
-    final List<PostModel> posts = MockData.getPosts();
-    Future<void> handleLogout(BuildContext context) async {
-      try {
-        const storage = FlutterSecureStorage();
-        await storage.delete(key: 'access_token');
-        if (context.mounted) {
-          Provider.of<UserProvider>(context, listen: false).clearUser();
-        }
-        if (context.mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => InstagramLoginDark()),
-                (route) => false,
-          );
-        }
-      } catch (e) {
-        print("Lỗi khi đăng xuất: $e");
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  List<HomePostDTO> _posts = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHomePosts();
+  }
+
+  Future<void> _fetchHomePosts() async {
+    try {
+      final response = await ApiService().get('/user/feed');
+      if (mounted) {
+        setState(() {
+          var rawList = response['data'] as List? ?? [];
+          _posts = rawList.map((i) => HomePostDTO.fromJson(i)).toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
+  }
+
+  Future<void> _toggleLike(HomePostDTO post) async {
+    final bool currentlyLiked = post.isLikedByCurrentUser;
+
+    setState(() {
+      final index = _posts.indexWhere((p) => p.id == post.id);
+      if (index != -1) {
+        _posts[index] = post.copyWith(
+          isLikedByCurrentUser: !currentlyLiked,
+          likeCount: currentlyLiked ? post.likeCount - 1 : post.likeCount + 1,
+        );
+      }
+    });
+
+    try {
+      await ApiService().post('/user/post/${post.id}/like', data: {});
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          final index = _posts.indexWhere((p) => p.id == post.id);
+          if (index != -1) {
+            _posts[index] = post;
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> handleLogout(BuildContext context) async {
+    try {
+      const storage = FlutterSecureStorage();
+      await storage.delete(key: 'access_token');
+      if (context.mounted) {
+        Provider.of<UserProvider>(context, listen: false).clearUser();
+      }
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => InstagramLoginDark()),
+              (route) => false,
+        );
+      }
+    } catch (e) {
+      print("Lỗi khi đăng xuất: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
@@ -57,13 +114,31 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: posts.length,
-        itemBuilder: (context, index) {
-          // return PostItem(post: posts[index]);
-          return Text('Post $index');
-        },
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _posts.isEmpty
+              ? const Center(child: Text('Chưa có bài viết nào', style: TextStyle(color: Colors.grey)))
+              : RefreshIndicator(
+                  onRefresh: _fetchHomePosts,
+                  child: ListView.builder(
+                    itemCount: _posts.length,
+                    itemBuilder: (context, index) {
+                      final post = _posts[index];
+                      return PostItem(
+                        post: post,
+                        onPostUpdated: (updatedPost) {
+                          setState(() {
+                            final idx = _posts.indexWhere((p) => p.id == updatedPost.id);
+                            if (idx != -1) {
+                              _posts[idx] = updatedPost;
+                            }
+                          });
+                        },
+                        onLikeToggle: () => _toggleLike(post),
+                      );
+                    },
+                  ),
+                ),
     );
   }
 }

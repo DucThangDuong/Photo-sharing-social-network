@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../../data/datasources/DTOs/PostDTO.dart';
+import '../../../../../data/datasources/DTOs/UserDTO.dart';
+import '../../../../../data/datasources/ApiServices.dart';
 import '../../../../../data/datasources/local/SearchCacheService.dart';
 import '../Widget/discovery_grid.dart';
 import '../Widget/recent_search_list.dart';
@@ -16,36 +19,87 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
-
   bool _isSearching = false;
   bool _isSubmitted = false;
+  bool _isLoadingDiscover = true;
+  bool _isLoadingResults = false;
   String _selectedType = 'Posts';
-  List<dynamic> _posts = [
-    {'imageUrl': 'https://picsum.photos/500/800?random=1', 'views': '75,8K'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=2', 'views': '1,2 triệu'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=3', 'views': '2 triệu'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=4', 'views': '10,4 triệu'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=5', 'views': '482K'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=6', 'views': '1 triệu'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=7', 'views': '9,5 triệu'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=8', 'views': '118K'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=9', 'views': '878K'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=10', 'views': '4,8 triệu'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=11', 'views': '250K'},
-    {'imageUrl': 'https://picsum.photos/500/800?random=12', 'views': '1,5 triệu'},
-  ]; // kéo dữ liệu api vào đây
-  List<dynamic> _userResults = [
-  {'name': 'Đinh Tấn Thành', 'username': 'dinhtan6974', 'avatar': 'https://i.pravatar.cc/150?u=1'},
-  {'name': 'Hân Phạm', 'username': 'hanpham_huit', 'avatar': 'https://i.pravatar.cc/150?u=2'},
-  {'name': 'Nguyễn Văn A', 'username': 'anv_99', 'avatar': 'https://i.pravatar.cc/150?u=3'},
-  ];
-  List<dynamic> _postResults = [
-  {'imageUrl': 'https://picsum.photos/500/800?random=20', 'views': '50K'},
-  {'imageUrl': 'https://picsum.photos/500/800?random=21', 'views': '125K'},
-  {'imageUrl': 'https://picsum.photos/500/800?random=22', 'views': '1,1 triệu'},
-  {'imageUrl': 'https://picsum.photos/500/800?random=23', 'views': '900K'},
-  ];
-  // Logic gọi API để ở đây...
+
+  // Bài viết nổi bật (trang khám phá)
+  List<PostSummaryDTO> _posts = [];
+
+  // Kết quả tìm kiếm
+  List<SuggestedUserDTO> _userResults = [];
+  List<PostSummaryDTO> _postResults = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDiscoverPosts();
+  }
+
+  // Lấy bài viết nổi bật cho trang khám phá
+  Future<void> _fetchDiscoverPosts() async {
+    try {
+      final response = await ApiService().get('/user/trending');
+      if (mounted) {
+        setState(() {
+          var rawList = response['data'] as List? ?? [];
+          _posts = rawList.map((i) => PostSummaryDTO.fromJson(i)).toList();
+          _isLoadingDiscover = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingDiscover = false);
+      }
+    }
+  }
+
+  Future<void> _performSearch(String query) async {
+    if (query.trim().isEmpty) return;
+
+    setState(() => _isLoadingResults = true);
+
+    // Gọi 2 API độc lập, 1 cái fail không ảnh hưởng cái kia
+    try {
+      final resultsUser = await ApiService().get('/user/search/users', queryParameters: {'keyword': query.trim()});
+      if (mounted) {
+        setState(() {
+          var userList = resultsUser['data'] as List? ?? [];
+          _userResults = userList.map((i) => SuggestedUserDTO.fromJson(i)).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Lỗi tìm kiếm người dùng: $e');
+    }
+
+    try {
+      final resultsPost = await ApiService().get('/post/search/posts', queryParameters: {'keyword': query.trim()});
+      if (mounted) {
+        setState(() {
+          var postList = resultsPost['data'] as List? ?? [];
+          _postResults = postList.map((i) => PostSummaryDTO.fromJson(i)).toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Lỗi tìm kiếm bài viết: $e');
+    }
+
+    if (mounted) {
+      setState(() => _isLoadingResults = false);
+    }
+  }
+
+  Future<void> _handleSubmit(String val) async {
+    if (val.trim().isNotEmpty) {
+      SearchCacheService.addSearch(val.trim());
+      setState(() => _isSubmitted = true);
+      await _performSearch(val.trim());
+    } else {
+      setState(() => _isSubmitted = true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,14 +115,14 @@ class _SearchPageState extends State<SearchPage> {
               onTap: () => setState(() => _isSearching = true),
               onCancel: () {
                 _focusNode.unfocus();
-                setState(() => _isSearching = _isSubmitted = false);
+                setState(() {
+                  _isSearching = false;
+                  _isSubmitted = false;
+                  _userResults = [];
+                  _postResults = [];
+                });
               },
-              onSubmitted: (val) {
-                if (val.trim().isNotEmpty) {
-                  SearchCacheService.addSearch(val.trim());
-                }
-                setState(() => _isSubmitted = true);
-              },
+              onSubmitted: _handleSubmit,
             ),
             Expanded(
               child: _buildContent(),
@@ -81,17 +135,26 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _buildContent() {
     if (_isSubmitted) {
+      // bài viết, người dùng tìm kiếm
       return SearchResultView(
         selectedType: _selectedType,
         query: _searchController.text,
-        userResults: _userResults, // Truyền list user[cite: 5]
-        postResults: _postResults, // Truyền list post[cite: 5]
+        userResults: _userResults,
+        postResults: _postResults,
+        isLoading: _isLoadingResults,
         onTypeChanged: (type) => setState(() => _selectedType = type),
       );
     }
     if (_isSearching) {
-      return const RecentSearchList();
+      return RecentSearchList(
+        onSelectRecentSearch: (query) {
+          _searchController.text = query;
+          SearchCacheService.addSearch(query);
+          setState(() => _isSubmitted = true);
+          _performSearch(query);
+        },
+      );
     }
-    return DiscoveryGrid(posts: _posts, isLoading: false);
+    return DiscoveryGrid(posts: _posts, isLoading: _isLoadingDiscover);
   }
 }

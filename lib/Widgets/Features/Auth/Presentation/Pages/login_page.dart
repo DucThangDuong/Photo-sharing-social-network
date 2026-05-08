@@ -87,19 +87,16 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      // Giúp Scaffold tự động xử lý khi bàn phím hiện lên
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-              // Bọc nội dung để có thể cuộn khi bàn phím che khuất
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight, // Ép chiều cao tối thiểu bằng màn hình
+                  minHeight: constraints.maxHeight,
                 ),
                 child: IntrinsicHeight(
-                  // IntrinsicHeight giúp các widget Spacer() hoạt động được bên trong SingleChildScrollView
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
@@ -143,12 +140,12 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
 
                         const Spacer(flex: 2),
 
-                        // Nút Tạo tài khoản (Nằm ở dưới cùng)
+                        // Nút Tạo tài khoản
                         _buildCreateAccountButton(),
                         const SizedBox(height: 15),
 
                         const MetaFooter(),
-                        const SizedBox(height: 10), // Khoảng trống nhỏ dưới cùng
+                        const SizedBox(height: 10),
                       ],
                     ),
                   ),
@@ -161,7 +158,7 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
     );
   }
 
-  // Widget riêng cho nút tạo tài khoản vì nó có style Outlined khác biệt
+  // nút tạo tài khoản
   Widget _buildCreateAccountButton() {
     return SizedBox(
       width: double.infinity,

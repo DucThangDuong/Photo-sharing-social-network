@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../../data/datasources/local/SearchCacheService.dart';
 
 class RecentSearchList extends StatefulWidget {
-  const RecentSearchList({super.key});
+  final ValueChanged<String> onSelectRecentSearch;
+  const RecentSearchList({super.key, required this.onSelectRecentSearch});
 
   @override
   State<RecentSearchList> createState() => _RecentSearchListState();
@@ -17,7 +18,7 @@ class _RecentSearchListState extends State<RecentSearchList> {
     super.initState();
     _loadSearches();
   }
-
+  //lấy danh sách tìm kiếm gần đây trong cache
   Future<void> _loadSearches() async {
     final searches = await SearchCacheService.getRecentSearches();
     if (mounted) {
@@ -27,14 +28,14 @@ class _RecentSearchListState extends State<RecentSearchList> {
       });
     }
   }
-
+  // xóa tìm kiếm đó trong cache
   Future<void> _removeSearch(String query) async {
     await SearchCacheService.removeSearch(query);
     setState(() {
       _recentSearches.removeWhere((item) => item['query'] == query);
     });
   }
-
+  // dọn tất cả tìm kiếm gần đây trong cache
   Future<void> _clearAll() async {
     final bool? confirm = await showDialog<bool>(
       context: context,
@@ -123,7 +124,7 @@ class _RecentSearchListState extends State<RecentSearchList> {
                   onPressed: () => _removeSearch(query),
                 ),
                 onTap: () {
-                  // Có thể trigger tìm kiếm lại với query này
+                  widget.onSelectRecentSearch(query);
                 },
               );
             },

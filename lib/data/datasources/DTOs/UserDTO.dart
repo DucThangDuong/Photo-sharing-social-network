@@ -38,3 +38,81 @@ class UserModelDTO {
     );
   }
 }
+
+class SuggestedUserDTO {
+  final int id;
+  final String username;
+  final String? fullName;
+  final String? avatarUrl;
+  final bool isFollowing;
+
+  SuggestedUserDTO({
+    required this.id,
+    required this.username,
+    this.fullName,
+    this.avatarUrl,
+    this.isFollowing = false,
+  });
+
+  factory SuggestedUserDTO.fromJson(Map<String, dynamic> json) {
+    return SuggestedUserDTO(
+      id: json['id'] ?? 0,
+      username: json['username'] ?? '',
+      fullName: json['fullName'],
+      avatarUrl: json['avatarUrl'],
+      isFollowing: json['isFollowing'] ?? false,
+    );
+  }
+
+  SuggestedUserDTO copyWith({
+    int? id,
+    String? username,
+    String? fullName,
+    String? avatarUrl,
+    bool? isFollowing,
+  }) {
+    return SuggestedUserDTO(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      fullName: fullName ?? this.fullName,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      isFollowing: isFollowing ?? this.isFollowing,
+    );
+  }
+}
+class SummaryUserDTO {
+  final int id;
+  final String username;
+  final String? fullName;
+  final String? avatarUrl;
+
+  SummaryUserDTO({
+    required this.id,
+    required this.username,
+    this.fullName,
+    this.avatarUrl,
+  });
+
+  factory SummaryUserDTO.fromJson(Map<String, dynamic> json) {
+    return SummaryUserDTO(
+      id: json['id'] ?? 0,
+      username: json['username'] ?? '',
+      fullName: json['fullName'],
+      avatarUrl: json['avatarUrl'],
+    );
+  }
+
+  SummaryUserDTO copyWith({
+    int? id,
+    String? username,
+    String? fullName,
+    String? avatarUrl,
+  }) {
+    return SummaryUserDTO(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      fullName: fullName ?? this.fullName,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+    );
+  }
+}

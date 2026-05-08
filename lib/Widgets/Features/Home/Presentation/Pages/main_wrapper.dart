@@ -21,9 +21,9 @@ class _MainWrapperState extends State<MainWrapper> {
   @override
   void initState() {
     super.initState();
-    _fetchUserProfile(); // Gọi hàm lấy dữ liệu ngay khi vừa nạp màn hình
+    _fetchUserProfile();
   }
-
+  // lấy dữ liệu user được lưu trong cache
   Future<void> _fetchUserProfile() async {
     try {
       final userRes = await ApiService().get('/user/profile');
@@ -45,7 +45,6 @@ class _MainWrapperState extends State<MainWrapper> {
   }
   int _selectedIndex = 0;
 
-  // Danh sách các trang tương ứng với các nút ở thanh bên dưới
   final List<Widget> _pages = [
     const HomePage(),
     const SearchPage(),
@@ -63,7 +62,6 @@ class _MainWrapperState extends State<MainWrapper> {
     }
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
-      // IndexedStack giúp giữ nguyên vị trí cuộn khi bạn chuyển tab
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
@@ -111,7 +109,6 @@ class _MainWrapperState extends State<MainWrapper> {
     );
   }
 
-  // Widget riêng cho Icon Profile để có vòng tròn và chấm đỏ thông báo
   Widget _buildProfileIcon(bool isActive) {
     return Stack(
       children: [
@@ -129,7 +126,6 @@ class _MainWrapperState extends State<MainWrapper> {
             backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=my_profile'),
           ),
         ),
-        // Chấm đỏ thông báo (như ảnh bạn gửi)
         Positioned(
           right: 0,
           bottom: 0,
