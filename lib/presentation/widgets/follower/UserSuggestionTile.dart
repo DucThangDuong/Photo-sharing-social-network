@@ -8,11 +8,13 @@ import '../../../data/Helper.dart';
 class UserSuggestionTile extends StatefulWidget {
   final SuggestedUserDTO user;
   final VoidCallback? onRemovePressed;
+  final Function(bool isFollowing)? onFollowToggle;
 
   const UserSuggestionTile({
     super.key,
     required this.user,
     this.onRemovePressed,
+    this.onFollowToggle,
   });
 
   @override
@@ -20,15 +22,7 @@ class UserSuggestionTile extends StatefulWidget {
 }
 
 class _UserSuggestionTileState extends State<UserSuggestionTile> {
-  late bool _isFollowing;
   bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _isFollowing = widget.user.isFollowing;
-    print('UserSuggestionTile initState: isFollowing = $_isFollowing');
-  }
 
   Future<void> _updateUserProfile() async {
     try {
@@ -45,24 +39,24 @@ class _UserSuggestionTileState extends State<UserSuggestionTile> {
   Future<void> _toggleFollow() async {
     if (_isLoading) return;
 
-    final bool wasFollowing = _isFollowing;
+    final bool isFollowing = widget.user.isFollowing;
     final int userId = widget.user.id;
 
     setState(() {
-      _isFollowing = !wasFollowing;
       _isLoading = true;
     });
 
     try {
-      if (wasFollowing) {
-        await ApiService().post('/user/follow/$userId', data: {});
-      } else {
-        await ApiService().post('/user/follow/$userId', data: {});
+      // Toggle follow API
+      final response = await ApiService().post('/user/follow/$userId', data: {});
+      final bool newFollowStatus = response['data']['isFollowed'] ?? !isFollowing;
+
+      if (mounted) {
+        widget.onFollowToggle?.call(newFollowStatus);
+        await _updateUserProfile();
       }
-      await _updateUserProfile();
     } catch (e) {
       if (mounted) {
-        setState(() => _isFollowing = wasFollowing);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Lỗi: ${e.toString()}')),
         );
@@ -123,7 +117,7 @@ class _UserSuggestionTileState extends State<UserSuggestionTile> {
             child: ElevatedButton(
               onPressed: _isLoading ? null : _toggleFollow,
               style: ElevatedButton.styleFrom(
-                backgroundColor: _isFollowing ? Colors.grey[800] : const Color(0xFF4C68FF),
+                backgroundColor: widget.user.isFollowing ? Colors.grey[800] : const Color(0xFF4C68FF),
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
@@ -137,7 +131,7 @@ class _UserSuggestionTileState extends State<UserSuggestionTile> {
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
                   : Text(
-                      _isFollowing ? 'Hủy theo dõi' : 'Theo dõi',
+                      widget.user.isFollowing ? 'Hủy theo dõi' : 'Theo dõi',
                       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
             ),

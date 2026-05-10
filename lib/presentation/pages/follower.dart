@@ -93,11 +93,39 @@ class _FollowersPageState extends State<FollowersPage> {
     }
   }
 
+  // Xử lý khi nhấn Follow/Unfollow từ bất kỳ widget nào
+  void _handleFollowToggle(SuggestedUserDTO user, bool isFollowing) {
+    setState(() {
+      // 1. Cập nhật trong danh sách Gợi ý
+      int suggestIndex = _suggestions.indexWhere((u) => u.id == user.id);
+      if (suggestIndex != -1) {
+        _suggestions[suggestIndex] = _suggestions[suggestIndex].copyWith(isFollowing: isFollowing);
+      }
+
+      // 2. Cập nhật trong danh sách Đang theo dõi
+      int followingIndex = _followings.indexWhere((u) => u.id == user.id);
+      if (isFollowing) {
+        if (followingIndex == -1) {
+          // Nếu vừa follow và chưa có trong list thì thêm vào
+          _followings.insert(0, user.copyWith(isFollowing: true));
+        } else {
+          _followings[followingIndex] = _followings[followingIndex].copyWith(isFollowing: true);
+        }
+      } else {
+        if (followingIndex != -1) {
+          // Nếu hủy follow, cập nhật trạng thái trong list (hoặc xóa đi tùy UX)
+          _followings[followingIndex] = _followings[followingIndex].copyWith(isFollowing: false);
+          // Thường thì unfollow xong sẽ xóa khỏi danh sách Following sau khi reload, 
+          // nhưng để UX mượt mà ta cứ để họ ở đó với nút "Theo dõi" hoặc xóa luôn:
+          // _followings.removeAt(followingIndex); 
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final currentUser = context
-        .watch<UserProvider>()
-        .user;
+    final currentUser = context.watch<UserProvider>().user;
     if (currentUser == null) {
       return const Scaffold(
         backgroundColor: Color(0xFF121212),
@@ -122,10 +150,8 @@ class _FollowersPageState extends State<FollowersPage> {
               dividerColor: Colors.white12,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.grey,
-              labelStyle: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.bold),
-              unselectedLabelStyle: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w500),
+              labelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              unselectedLabelStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               tabs: [
                 Tab(text: '${currentUser.followersNumber} người theo dõi'),
                 Tab(text: '${currentUser.followingsNumber} đang theo dõi'),
@@ -157,12 +183,8 @@ class _FollowersPageState extends State<FollowersPage> {
           CircleAvatar(
             radius: 28,
             backgroundColor: Colors.grey[800],
-            backgroundImage: avatarUrl.isNotEmpty
-                ? NetworkImage(avatarUrl)
-                : null,
-            child: avatarUrl.isEmpty
-                ? const Icon(Icons.person, color: Colors.white, size: 28)
-                : null,
+            backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+            child: avatarUrl.isEmpty ? const Icon(Icons.person, color: Colors.white, size: 28) : null,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -171,9 +193,7 @@ class _FollowersPageState extends State<FollowersPage> {
               children: [
                 Text(
                   user.username,
-                  style: const TextStyle(color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -204,22 +224,20 @@ class _FollowersPageState extends State<FollowersPage> {
           if (_isLoadingFollowers)
             const Padding(
               padding: EdgeInsets.all(30),
-              child: Center(
-                  child: CircularProgressIndicator(color: Colors.white54)),
+              child: Center(child: CircularProgressIndicator(color: Colors.white54)),
             )
-          else
-            if (_followers.isEmpty) ...[
-              const SizedBox(height: 40),
-              const EmptyFollowerState(),
-            ] else
-              ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                itemCount: _followers.length,
-                itemBuilder: (context, index) {
-                  return _buildUserTile(_followers[index]);
-                },
-              ),
+          else if (_followers.isEmpty) ...[
+            const SizedBox(height: 40),
+            const EmptyFollowerState(),
+          ] else
+            ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: _followers.length,
+              itemBuilder: (context, index) {
+                return _buildUserTile(_followers[index]);
+              },
+            ),
 
           const SizedBox(height: 20),
 
@@ -230,9 +248,7 @@ class _FollowersPageState extends State<FollowersPage> {
                 padding: EdgeInsets.only(left: 16, top: 8, bottom: 8),
                 child: Text(
                   'Gợi ý cho bạn',
-                  style: TextStyle(color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -241,8 +257,10 @@ class _FollowersPageState extends State<FollowersPage> {
               shrinkWrap: true,
               itemCount: _suggestions.length,
               itemBuilder: (context, index) {
+                final user = _suggestions[index];
                 return UserSuggestionTile(
-                  user: _suggestions[index],
+                  user: user,
+                  onFollowToggle: (isFollowing) => _handleFollowToggle(user, isFollowing),
                   onRemovePressed: () {
                     setState(() {
                       _suggestions.removeAt(index);
@@ -258,29 +276,27 @@ class _FollowersPageState extends State<FollowersPage> {
       ),
     );
   }
+
   // người mình đang theo dõi
   Widget _buildFollowingsTab() {
     if (_isLoadingFollowings) {
-      return const Center(
-          child: CircularProgressIndicator(color: Colors.white54));
+      return const Center(child: CircularProgressIndicator(color: Colors.white54));
     }
 
     if (_followings.isEmpty) {
       return const Center(
-        child: Text('Bạn chưa theo dõi ai',
-            style: TextStyle(color: Colors.grey, fontSize: 16)),
+        child: Text('Bạn chưa theo dõi ai', style: TextStyle(color: Colors.grey, fontSize: 16)),
       );
     }
 
     return ListView.builder(
       itemCount: _followings.length,
       itemBuilder: (context, index) {
+        final user = _followings[index];
         return UserSuggestionTile(
-          user: _followings[index], onRemovePressed: () {
-          setState(() {
-            _suggestions.removeAt(index);
-          });
-        },);
+          user: user,
+          onFollowToggle: (isFollowing) => _handleFollowToggle(user, isFollowing),
+        );
       },
     );
   }

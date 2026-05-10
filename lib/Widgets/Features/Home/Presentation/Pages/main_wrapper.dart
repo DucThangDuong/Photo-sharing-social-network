@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../../../data/datasources/ApiServices.dart';
 import '../../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../../data/datasources/global/User.dart';
+import '../../../../../data/Helper.dart';
 import '../../../Profile/Presentation/Page/profile_page.dart';
 import '../../../Search/Presentation/Page/search_page.dart';
 import 'home_page.dart';
@@ -18,11 +19,13 @@ class MainWrapper extends StatefulWidget {
 
 class _MainWrapperState extends State<MainWrapper> {
   bool _isFetchingUser = true;
+
   @override
   void initState() {
     super.initState();
     _fetchUserProfile();
   }
+
   // lấy dữ liệu user được lưu trong cache
   Future<void> _fetchUserProfile() async {
     try {
@@ -43,12 +46,15 @@ class _MainWrapperState extends State<MainWrapper> {
       }
     }
   }
+
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
     const HomePage(),
     const SearchPage(),
-    const Center(child: Text('Reels Page', style: TextStyle(color: Colors.white))),  // Placeholder
+    const Center(
+        child: Text('Reels Page', style: TextStyle(color: Colors.white))),
+    // Placeholder
     const ProfilePage(),
   ];
 
@@ -110,6 +116,9 @@ class _MainWrapperState extends State<MainWrapper> {
   }
 
   Widget _buildProfileIcon(bool isActive) {
+    final currentUser = context
+        .read<UserProvider>()
+        .user;
     return Stack(
       children: [
         Container(
@@ -121,22 +130,10 @@ class _MainWrapperState extends State<MainWrapper> {
               width: 1,
             ),
           ),
-          child: const CircleAvatar(
+          child: CircleAvatar(
             radius: 12,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=my_profile'),
-          ),
-        ),
-        Positioned(
-          right: 0,
-          bottom: 0,
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: Colors.red,
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF121212), width: 1.5),
-            ),
+            backgroundImage: NetworkImage(
+                AppHelper.formatImageURL(currentUser?.avatarUrl ?? "")),
           ),
         ),
       ],
