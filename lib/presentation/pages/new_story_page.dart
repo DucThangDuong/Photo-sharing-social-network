@@ -7,7 +7,6 @@ import '../../data/datasources/global/User.dart';
 import 'package:provider/provider.dart';
 
 class StoryUploadPage extends StatefulWidget {
-  // Nhận file ảnh từ màn hình chọn ảnh (Gallery/Camera) truyền sang
   final File? imageFile;
 
   const StoryUploadPage({super.key, this.imageFile});
@@ -25,7 +24,7 @@ class _StoryUploadPageState extends State<StoryUploadPage> {
     super.initState();
     _currentImageFile = widget.imageFile;
   }
-
+  // hình ảnh người dùng đã chọn để up lên story
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -36,7 +35,7 @@ class _StoryUploadPageState extends State<StoryUploadPage> {
       });
     }
   }
-
+  // up hình ảnh lên api
   Future<void> _uploadStory() async {
     if (_currentImageFile == null) return;
     
@@ -53,7 +52,7 @@ class _StoryUploadPageState extends State<StoryUploadPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đã thêm vào tin của bạn!')),
         );
-        Navigator.pop(context); // Đăng xong thì đóng màn hình này lại
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
@@ -73,12 +72,9 @@ class _StoryUploadPageState extends State<StoryUploadPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // ==========================================
-            // LỚP DƯỚI CÙNG: ẢNH HIỂN THỊ TOÀN MÀN HÌNH HOẶC MÀN HÌNH ĐEN CHỌN ẢNH
-            // ==========================================
             Positioned.fill(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(16), // Bo góc mượt mà kiểu iOS
+                borderRadius: BorderRadius.circular(16),
                 child: _currentImageFile != null
                     ? Image.file(_currentImageFile!, fit: BoxFit.cover)
                     : Center(
@@ -99,8 +95,6 @@ class _StoryUploadPageState extends State<StoryUploadPage> {
                       ),
               ),
             ),
-
-            // Màn đen mờ khi đang upload
             if (_isUploading)
               Positioned.fill(
                 child: Container(
@@ -111,9 +105,6 @@ class _StoryUploadPageState extends State<StoryUploadPage> {
                 ),
               ),
 
-            // ==========================================
-            // LỚP TRÊN (TOP): CÁC NÚT CÔNG CỤ (Đóng, Thêm chữ, Sticker...)
-            // ==========================================
             Positioned(
               top: 10,
               left: 10,
@@ -148,9 +139,6 @@ class _StoryUploadPageState extends State<StoryUploadPage> {
               ),
             ),
 
-            // ==========================================
-            // LỚP DƯỚI (BOTTOM): CÁC NÚT ĐĂNG STORY (Chỉ hiện khi đã chọn ảnh)
-            // ==========================================
             if (_currentImageFile != null)
               Positioned(
                 bottom: 20,
@@ -192,7 +180,6 @@ class _StoryUploadPageState extends State<StoryUploadPage> {
                     ),
                     const SizedBox(width: 10),
 
-                    // Nút "Gửi đến" (Mũi tên trắng)
                     GestureDetector(
                       onTap: _isUploading ? null : _uploadStory,
                       child: Container(

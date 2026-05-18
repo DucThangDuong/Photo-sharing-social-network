@@ -1,23 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:untitled/data/Helper.dart';
-import 'package:untitled/data/datasources/ApiServices.dart';
+import 'package:untitled/presentation/widgets/guest_profile/user_post_detail_page_guest.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../data/datasources/global/CallAPIOfUser.dart';
-import '../../../../../data/datasources/global/User.dart';
-import '../Page/user_post_detail_page.dart';
 
-class ProfilePostGrid extends StatefulWidget {
+class ProfilePostGridGuest extends StatefulWidget {
   final UserModelDTO? user;
-  const ProfilePostGrid({super.key, this.user});
+  const ProfilePostGridGuest({super.key, this.user});
 
   @override
-  State<ProfilePostGrid> createState() => _ProfilePostGridState();
+  State<ProfilePostGridGuest> createState() => _ProfilePostGridState();
 }
 
-class _ProfilePostGridState extends State<ProfilePostGrid> {
+class _ProfilePostGridState extends State<ProfilePostGridGuest> {
   List<PostSummaryDTO> posts = [];
   bool isLoading = true;
 
@@ -28,7 +25,7 @@ class _ProfilePostGridState extends State<ProfilePostGrid> {
       _fetchPosts();
     }
   }
-  // lấy danh sách bài viết của người dùng từ api
+  // lấy danh sách bài viết của người dùng này
   Future<void> _fetchPosts() async {
     try {
       if (widget.user == null) {
@@ -37,7 +34,7 @@ class _ProfilePostGridState extends State<ProfilePostGrid> {
         });
         return;
       }
-      final List<PostSummaryDTO> response = await CallMyAPI.getMyPostsSummary();
+      final List<PostSummaryDTO> response = await CallMyAPI.getPostsSummary(widget.user!.id);
 
       if (mounted) {
         setState(() {
@@ -97,7 +94,7 @@ class _ProfilePostGridState extends State<ProfilePostGrid> {
             await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => UserPostsDetailPage(
+                builder: (context) => UserPostsDetailPageGuest(
                   initialIndex: index,
                   user: widget.user,
                 ),

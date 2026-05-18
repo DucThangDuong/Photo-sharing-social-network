@@ -4,11 +4,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:untitled/data/Helper.dart';
 
-import '../widgets/newPost/AppBar.dart';
-import '../widgets/newPost/ImagePreview.dart';
-import '../widgets/newPost/PermissionNotice.dart';
-import '../widgets/newPost/PhotoGrid.dart';
-import '../widgets/newPost/PostControlBar.dart';
+import '../widgets/newPost/new_post_AppBar.dart';
+import '../widgets/newPost/Image_Preview.dart';
+import '../widgets/newPost/btn_permisson_album.dart';
+import '../widgets/newPost/Photo_grid.dart';
+import '../widgets/newPost/btn_select_image.dart';
 class NewPostScreen extends StatefulWidget {
   const NewPostScreen({super.key});
   @override
@@ -28,7 +28,7 @@ class NewPostState extends State<NewPostScreen> {
       _fetchAssets();
     });
   }
-
+  // lấy hình ảnh từ album người dùng
   Future<void> _fetchAssets() async {
     final PermissionState ps = await PhotoManager.requestPermissionExtend();
     if (ps.isAuth) {

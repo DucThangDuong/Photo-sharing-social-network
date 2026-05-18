@@ -2,22 +2,41 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../data/Models/User.dart';
 import '../../../../../../data/datasources/DTOs/UserDTO.dart';
-import '../../../../../presentation/pages/EditProfile.dart';
+import '../../../../../presentation/pages/edit_my_profile_page.dart';
 
 class ProfileInfo extends StatelessWidget {
   final UserModelDTO user;
 
   const ProfileInfo({super.key, required this.user});
-
+  // widget button các nút bấm
+  Widget _buildActionButton(String label, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: const Color(0xFF262626),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14
+          ),
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
-      //tạo khoảng cách trai phải
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // hien thi link bio
           const SizedBox(height: 5),
           Row(
             children: [
@@ -74,28 +93,6 @@ class ProfileInfo extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String label, VoidCallback onPressed) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: const Color(0xFF262626),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 14
-          ),
-        ),
       ),
     );
   }

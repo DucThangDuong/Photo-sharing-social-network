@@ -30,7 +30,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
   Future<void> _fetchComments() async {
     try {
-      final response = await ApiService().get('/user/post/${widget.post.id}/comments');
+      final response = await ApiService().get('/post/${widget.post.id}/comments');
       if (mounted) {
         setState(() {
           var rawList = response['data'] as List? ?? [];
@@ -53,7 +53,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
     try {
       final response = await ApiService().post(
-        '/user/post/${widget.post.id}/comment',
+        '/post/${widget.post.id}/comment',
         data: {'Content': content},
       );
 

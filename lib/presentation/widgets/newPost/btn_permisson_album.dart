@@ -13,7 +13,7 @@ class NewPostPermissionNotice extends StatelessWidget {
         children: [
           const Expanded(
             child: Text(
-              'Bạn đã cấp cho Instagram quyền truy cập vào một số ảnh và video.',
+              'Bạn đã cấp cho chúng tôi quyền truy cập vào một số ảnh và video.',
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
           ),

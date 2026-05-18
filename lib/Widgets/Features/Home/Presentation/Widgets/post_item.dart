@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:untitled/data/datasources/DTOs/PostDTO.dart';
-import 'package:untitled/data/datasources/ApiServices.dart';
 import 'package:untitled/data/Helper.dart';
 import '../../../Profile/Presentation/Widgets/comment_bottom_sheet.dart';
 
@@ -15,7 +14,54 @@ class PostItem extends StatelessWidget {
     required this.onPostUpdated,
     required this.onLikeToggle,
   });
+  // các btn tương tác bài viết
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          icon: Icon(
+            post.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border,
+            color: post.isLikedByCurrentUser ? Colors.red : Colors.white,
+          ),
+          onPressed: onLikeToggle,
+        ),
+        if (!post.disableComments)
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+            onPressed: () => _showComments(context),
+          ),
+        IconButton(icon: const Icon(Icons.send_outlined, color: Colors.white), onPressed: () {}),
+        const Spacer(),
+        IconButton(icon: const Icon(Icons.bookmark_border, color: Colors.white), onPressed: () {}),
+      ],
+    );
+  }
+  // hiển thị danh sách comment của bài post
+  void _showComments(BuildContext context) {
+    final postDetail = PostDetailUserDTO(
+      id: post.id,
+      caption: post.caption,
+      createdAt: post.createdAt,
+      visibility: post.visibility,
+      hideLikeCount: post.hideLikeCount,
+      disableComments: post.disableComments,
+      postMedia: post.postMedia,
+      likeCount: post.likeCount,
+      commentCount: post.commentCount,
+      isLikedByCurrentUser: post.isLikedByCurrentUser,
+      isArchived: post.isArchived,
+    );
 
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => CommentBottomSheet(post: postDetail),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     String imageUrl = post.postMedia.isNotEmpty
@@ -94,51 +140,4 @@ class PostItem extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          icon: Icon(
-            post.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border,
-            color: post.isLikedByCurrentUser ? Colors.red : Colors.white,
-          ),
-          onPressed: onLikeToggle,
-        ),
-        if (!post.disableComments)
-          IconButton(
-            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-            onPressed: () => _showComments(context),
-          ),
-        IconButton(icon: const Icon(Icons.send_outlined, color: Colors.white), onPressed: () {}),
-        const Spacer(),
-        IconButton(icon: const Icon(Icons.bookmark_border, color: Colors.white), onPressed: () {}),
-      ],
-    );
-  }
-
-  void _showComments(BuildContext context) {
-    final postDetail = PostDetailUserDTO(
-      id: post.id,
-      caption: post.caption,
-      createdAt: post.createdAt,
-      visibility: post.visibility,
-      hideLikeCount: post.hideLikeCount,
-      disableComments: post.disableComments,
-      postMedia: post.postMedia,
-      likeCount: post.likeCount,
-      commentCount: post.commentCount,
-      isLikedByCurrentUser: post.isLikedByCurrentUser,
-      isArchived: post.isArchived,
-    );
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => CommentBottomSheet(post: postDetail),
-    );
-  }
 }

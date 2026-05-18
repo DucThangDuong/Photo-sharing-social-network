@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/datasources/DTOs/StoryDTO.dart';
 import '../../data/Helper.dart';
+import '../../data/datasources/ApiServices.dart';
 
 class StoryViewPage extends StatefulWidget {
   final UserStoryDTO userStory;
@@ -19,20 +20,11 @@ class _StoryViewPageState extends State<StoryViewPage> {
   void initState() {
     super.initState();
     _pageController = PageController();
-  }
-
-  void _nextStory() {
-    if (_currentIndex < widget.userStory.stories.length - 1) {
-      _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-    } else {
-      Navigator.pop(context);
-    }
-  }
-
-  void _prevStory() {
-    if (_currentIndex > 0) {
-      _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.userStory.stories.isNotEmpty) {
+        _markStoryAsViewed(widget.userStory.stories[0].id);
+      }
+    });
   }
 
   @override
@@ -41,6 +33,27 @@ class _StoryViewPageState extends State<StoryViewPage> {
     super.dispose();
   }
 
+  Future<void> _markStoryAsViewed(int storyId) async {
+    try {
+      await ApiService().post('/story/view/$storyId');
+    } catch (e) {
+      debugPrint("Error marking story as viewed: $e");
+    }
+  }
+  // xem story sau đó của người dùng
+  void _nextStory() {
+    if (_currentIndex < widget.userStory.stories.length - 1) {
+      _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    } else {
+      Navigator.pop(context);
+    }
+  }
+  // xem story trước đó của người dùng
+  void _prevStory() {
+    if (_currentIndex > 0) {
+      _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    }
+  }
   @override
   Widget build(BuildContext context) {
     if (widget.userStory.stories.isEmpty) {
@@ -71,6 +84,7 @@ class _StoryViewPageState extends State<StoryViewPage> {
                   setState(() {
                     _currentIndex = index;
                   });
+                  _markStoryAsViewed(widget.userStory.stories[index].id);
                 },
                 itemBuilder: (context, index) {
                   final story = widget.userStory.stories[index];

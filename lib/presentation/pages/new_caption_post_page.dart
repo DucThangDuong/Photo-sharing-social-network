@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
-import '../widgets/newCaptionPost/CaptionAppBar.dart';
-import '../widgets/newCaptionPost/CaptionBottomShare.dart';
-import '../widgets/newCaptionPost/CaptionImagePreview.dart';
-import '../widgets/newCaptionPost/CaptionInput.dart';
+import 'package:provider/provider.dart';
+import '../../data/datasources/global/User.dart';
+import '../../data/datasources/DTOs/UserDTO.dart';
+import '../widgets/new_caption_post/caption_AppBar.dart';
+import '../widgets/new_caption_post/caption_btn_share.dart';
+import '../widgets/new_caption_post/caption_image_preview.dart';
+import '../widgets/new_caption_post/caption_input.dart';
 
 class FinalSharePostScreen extends StatefulWidget {
   const FinalSharePostScreen({super.key, required this.imagePaths});
@@ -29,12 +32,11 @@ class _FinalSharePostScreenState extends State<FinalSharePostScreen> {
     _captionController.dispose();
     super.dispose();
   }
-
+  // post bài viết này lên api
   Future<void> _handlePost() async {
     setState(() {
       _isLoading = true;
     });
-
     try {
       final String caption = _captionController.text.trim();
       
@@ -48,14 +50,22 @@ class _FinalSharePostScreenState extends State<FinalSharePostScreen> {
           await MultipartFile.fromFile(path),
         ));
       }
-
-      await ApiService().post('/user/newPost', data: formData);
-
+      await ApiService().post('/post/newPost', data: formData);
       if (mounted) {
+        try {
+          final userRes = await ApiService().get('/user/profile');
+          if (userRes != null && userRes['data'] != null) {
+            UserModelDTO updatedUser = UserModelDTO.fromJson(userRes['data']);
+            Provider.of<UserProvider>(context, listen: false).setUser(updatedUser);
+          }
+        } catch (e) {
+          debugPrint("Lỗi tải lại thông tin người dùng: $e");
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đăng bài thành công!')),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {

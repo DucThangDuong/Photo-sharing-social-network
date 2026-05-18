@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:untitled/data/datasources/global/CallAPIOfUser.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/ApiServices.dart';
 import '../../../../../data/datasources/global/User.dart';
-import '../../../../../presentation/pages/newPost.dart';
+import '../../../../../presentation/pages/new_post_page.dart';
 import '../../../Auth/Presentation/Pages/login_page.dart';
 import '../Widgets/post_item.dart';
 
@@ -24,14 +25,13 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _fetchHomePosts();
   }
-
+  // lấy danh sách feed từ api
   Future<void> _fetchHomePosts() async {
     try {
-      final response = await ApiService().get('/user/feed');
+      final response = await CallMyAPI.getFeedsOfMe();
       if (mounted) {
         setState(() {
-          var rawList = response['data'] as List? ?? [];
-          _posts = rawList.map((i) => HomePostDTO.fromJson(i)).toList();
+          _posts = response;
           _isLoading = false;
         });
       }
@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
-
+  // người dùng nhấn like bài viết, call api
   Future<void> _toggleLike(HomePostDTO post) async {
     final bool currentlyLiked = post.isLikedByCurrentUser;
 
@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
     });
 
     try {
-      await ApiService().post('/user/post/${post.id}/like', data: {});
+      await ApiService().post('/post/${post.id}/like', data: {});
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
-
+  // đăng xuất tài khoản
   Future<void> handleLogout(BuildContext context) async {
     try {
       const storage = FlutterSecureStorage();

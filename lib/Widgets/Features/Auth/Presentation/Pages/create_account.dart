@@ -23,13 +23,14 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
   bool _isUsernameValid = false;
-  // Logic xử lý link
+  // thẻ a mở link giúp đỡ của instagram
   Future<void> _handleUrl() async {
     final Uri url = Uri.parse('https://help.instagram.com/1020536697967549');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       debugPrint('Lỗi mở link');
     }
   }
+  // gửi yêu cầu tạo tài khoản lên api
   Future<void> _handleRegister() async {
     final password = _passwordController.text.trim();
     final username = _usernameController.text.trim();
@@ -40,11 +41,9 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
       );
       return;
     }
-
     setState(() {
       _isLoading = true;
     });
-
     try {
       final response = await ApiService().post(
         '/auth/register',
@@ -78,6 +77,39 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
         });
       }
     }
+  }
+  // widget btn suibmit
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF0064E0),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        ),
+        onPressed: _isLoading ? null : _handleRegister,
+        child: _isLoading
+            ? const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+        )
+            : const Text('Tiếp', style: TextStyle(color: Colors.white, fontSize: 16)),
+      ),
+    );
+  }
+  // widget footter
+  Widget _buildFooter() {
+    return Center(
+      child: TextButton(
+        onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+        child: const Text(
+          'Tôi có tài khoản rồi',
+          style: TextStyle(color: Color(0xFF0064E0), fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
   }
 
   @override
@@ -153,37 +185,4 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
     );
   }
 
-  // Các hàm build phụ cho các nút đơn giản
-  Widget _buildSubmitButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0064E0),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        ),
-        onPressed: _isLoading ? null : _handleRegister,
-        child: _isLoading
-            ? const SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-        )
-            : const Text('Tiếp', style: TextStyle(color: Colors.white, fontSize: 16)),
-      ),
-    );
-  }
-
-  Widget _buildFooter() {
-    return Center(
-      child: TextButton(
-        onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-        child: const Text(
-          'Tôi có tài khoản rồi',
-          style: TextStyle(color: Color(0xFF0064E0), fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
 }

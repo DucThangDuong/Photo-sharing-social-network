@@ -1,66 +1,62 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:untitled/data/datasources/ApiServices.dart';
+import '../Widgets/InputField/EmailInputField.dart';
+import '../Widgets/Header/EmailHeader.dart';
 import '../Widgets/Button/AuthButton.dart';
-import '../Widgets/Button/CountryPickerRow.dart';
-import '../Widgets/Button/PrivacyNote.dart';
-import '../Widgets/Header/PhoneHeader.dart';
-import '../Widgets/InputField/PhoneInputField.dart';
-import 'create_account_email.dart';
-import 'create_account_number.dart';
+import 'create_account.dart';
 
-class RegisterPhonePage extends StatefulWidget {
+class RegisterEmailPage extends StatefulWidget {
+  const RegisterEmailPage({super.key});
+
   @override
-  _RegisterPhonePageState createState() => _RegisterPhonePageState();
+  State<RegisterEmailPage> createState() => _RegisterEmailPageState();
 }
-class _RegisterPhonePageState extends State<RegisterPhonePage> {
-  final TextEditingController _phoneController = TextEditingController();
-  late TapGestureRecognizer _tapGestureRecognizer;
 
-  GestureTapCallback? get _launchInstagramHelp => null;
-
-  @override
-  void initState() {
-    super.initState();
-    _tapGestureRecognizer = TapGestureRecognizer()..onTap = _handleOpenLink;
-  }
-
+class _RegisterEmailPageState extends State<RegisterEmailPage> {
+  final TextEditingController _emailController = TextEditingController();
   @override
   void dispose() {
-    _tapGestureRecognizer.dispose();
-    _phoneController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
-
-  // Logic Validation
-  bool _isVietnamesePhoneNumber(String phone) {
-    final RegExp phoneRegex = RegExp(r'^(0[3|5|7|8|9])([0-9]{8})$');
-    return phoneRegex.hasMatch(phone);
+  // Logic kiểm tra Email
+  bool _isValidEmail(String email) {
+    return RegExp(
+        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+        .hasMatch(email);
   }
-  Future<void> _handleOpenLink() async {
-    final Uri url = Uri.parse('https://help.instagram.com/574047304429005');
 
-    try {
-      bool launched = await launchUrl(
-        url,
-        mode: LaunchMode.externalApplication,
-      );
-
-      if (!launched) {
-        debugPrint('Không thể mở liên kết: $url');
-      }
-    } catch (e) {
-      debugPrint('Lỗi phát sinh: $e');
-    }
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating),
+    );
   }
-  void _handleNextStep() {
-    String phone = _phoneController.text.trim();
-    if (phone.isEmpty) {
-      _showErrorSnackBar('Vui lòng nhập số điện thoại');
-    } else if (!_isVietnamesePhoneNumber(phone)) {
-      _showErrorSnackBar('Số điện thoại không đúng định dạng Việt Nam');
+
+  // btn gửi api email này có trong hệ thống chưa
+  Future<void> _handleContinue() async {
+    String email = _emailController.text.trim();
+    if (email.isEmpty) {
+      _showError('Vui lòng nhập email');
+    } else if (!_isValidEmail(email)) {
+      _showError('Định dạng email không hợp lệ');
     } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => CreatePasswordPage(email: phone)));
+      var response = await ApiService().post(
+          '/auth/checkEmail', data: {'Email': email});
+      if (response != null && response['data'] != null) {
+        final bool isEmailExist = response['data']['exists'];
+        if (isEmailExist == true) {
+          _showError('Email đã tồn tại');
+        }
+        else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => CreatePasswordPage(email: email)),
+          );
+        }
+      }
     }
   }
 
@@ -77,71 +73,29 @@ class _RegisterPhonePageState extends State<RegisterPhonePage> {
         ),
       ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const PhoneHeader(),
-                        const SizedBox(height: 30),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const EmailHeader(),
+              const SizedBox(height: 30),
 
-                        CountryPickerRow(onChange: () {}),
+              EmailInputField(controller: _emailController),
+              const SizedBox(height: 20),
 
-                        PhoneInputField(controller: _phoneController),
-                        const SizedBox(height: 15),
-
-                        PrivacyNote(recognizer: _tapGestureRecognizer),
-                        const SizedBox(height: 30),
-
-                        AuthButton(
-                          label: 'Tiếp',
-                          color: const Color(0xFF0064E0),
-                          onPressed: _handleNextStep,
-                        ),
-                        const SizedBox(height: 15),
-
-                        AuthButton(
-                          label: 'Đăng ký bằng email',
-                          color: const Color(0xFF262626),
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterEmailPage())),
-                        ),
-
-                        const Spacer(),
-                        _buildFooter(),
-                      ],
-                    ),
-                  ),
-                ),
+              AuthButton(
+                label: 'Tiếp',
+                color: const Color(0xFF0064E0),
+                onPressed: _handleContinue,
               ),
-            );
-          },
+              const SizedBox(height: 15),
+              const Spacer(),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFooter() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20, top: 20),
-      child: Center(
-        child: TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Tôi có tài khoản rồi', style: TextStyle(color: Color(0xFF0064E0), fontWeight: FontWeight.bold)),
-        ),
-      ),
-    );
-  }
-
-  // Giữ lại hàm thông báo lỗi
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
-    );
-  }
 }

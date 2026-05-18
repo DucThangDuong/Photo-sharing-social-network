@@ -38,10 +38,10 @@ class _SearchPageState extends State<SearchPage> {
     _fetchDiscoverPosts();
   }
 
-  // Lấy bài viết nổi bật cho trang khám phá
+  // Lấy bài viết nổi bật cho trang khám phá từ api
   Future<void> _fetchDiscoverPosts() async {
     try {
-      final response = await ApiService().get('/user/trending');
+      final response = await ApiService().get('/post/trending');
       if (mounted) {
         setState(() {
           var rawList = response['data'] as List? ?? [];
@@ -55,13 +55,11 @@ class _SearchPageState extends State<SearchPage> {
       }
     }
   }
-
+  // gọi 2 api , 1 cái là lấy người dùng, 1 cái lấy các bài post trùng tên
   Future<void> _performSearch(String query) async {
     if (query.trim().isEmpty) return;
 
     setState(() => _isLoadingResults = true);
-
-    // Gọi 2 API độc lập, 1 cái fail không ảnh hưởng cái kia
     try {
       final resultsUser = await ApiService().get('/user/search/users', queryParameters: {'keyword': query.trim()});
       if (mounted) {
@@ -90,7 +88,7 @@ class _SearchPageState extends State<SearchPage> {
       setState(() => _isLoadingResults = false);
     }
   }
-
+  // gửi yêu cầu tìm kiếm từ khóa lên api
   Future<void> _handleSubmit(String val) async {
     if (val.trim().isNotEmpty) {
       SearchCacheService.addSearch(val.trim());
@@ -100,7 +98,30 @@ class _SearchPageState extends State<SearchPage> {
       setState(() => _isSubmitted = true);
     }
   }
-
+  // các tabbar tìm kiếm, chuyển giữa người dùng và bài viết
+  Widget _buildContent() {
+    if (_isSubmitted) {
+      return SearchResultView(
+        selectedType: _selectedType,
+        query: _searchController.text,
+        userResults: _userResults,
+        postResults: _postResults,
+        isLoading: _isLoadingResults,
+        onTypeChanged: (type) => setState(() => _selectedType = type),
+      );
+    }
+    if (_isSearching) {
+      return RecentSearchList(
+        onSelectRecentSearch: (query) {
+          _searchController.text = query;
+          SearchCacheService.addSearch(query);
+          setState(() => _isSubmitted = true);
+          _performSearch(query);
+        },
+      );
+    }
+    return DiscoveryGrid(posts: _posts, isLoading: _isLoadingDiscover);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -133,28 +154,4 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildContent() {
-    if (_isSubmitted) {
-      // bài viết, người dùng tìm kiếm
-      return SearchResultView(
-        selectedType: _selectedType,
-        query: _searchController.text,
-        userResults: _userResults,
-        postResults: _postResults,
-        isLoading: _isLoadingResults,
-        onTypeChanged: (type) => setState(() => _selectedType = type),
-      );
-    }
-    if (_isSearching) {
-      return RecentSearchList(
-        onSelectRecentSearch: (query) {
-          _searchController.text = query;
-          SearchCacheService.addSearch(query);
-          setState(() => _isSubmitted = true);
-          _performSearch(query);
-        },
-      );
-    }
-    return DiscoveryGrid(posts: _posts, isLoading: _isLoadingDiscover);
-  }
 }

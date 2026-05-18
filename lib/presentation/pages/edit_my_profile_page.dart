@@ -6,8 +6,8 @@ import 'package:untitled/data/datasources/ApiServices.dart';
 import 'package:provider/provider.dart';
 import '../../data/datasources/DTOs/UserDTO.dart';
 import '../../data/datasources/global/User.dart';
-import '../widgets/edit_profile/EditMain.dart';
-import '../widgets/edit_profile/EditProfileAppBar.dart';
+import '../widgets/edit_my_profile/edit_main.dart';
+import '../widgets/edit_my_profile/edit_AppBar.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -46,11 +46,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _usernameController = TextEditingController(text: currentUser?.username ?? '');
     _bioController = TextEditingController(text: currentUser?.bio ?? '');
     _genderController = TextEditingController(text: getGenderText(currentUser?.gender));
-    _currentAvatarUrl= currentUser?.avatarUrl;
-    
-    if (currentUser?.avatarUrl != null && currentUser!.avatarUrl!.isNotEmpty) {
-      _currentAvatarUrl = currentUser.avatarUrl!.replaceFirst('localhost', '10.0.2.2');
-    }
+    _currentAvatarUrl=  currentUser?.avatarUrl;
 
     _initialName = _nameController.text;
     _initialUsername = _usernameController.text;
@@ -62,7 +58,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _bioController.addListener(_checkDirty);
     _genderController.addListener(_checkDirty);
   }
-
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _usernameController.dispose();
+    _bioController.dispose();
+    _genderController.dispose();
+    super.dispose();
+  }
+  // option chọn giới tính
+  Widget _buildGenderOption(String value) {
+    return ListTile(
+      title: Text(value, style: const TextStyle(color: Colors.white)),
+      trailing: _genderController.text == value ? const Icon(
+          Icons.check, color: Color(0xFF0095F6)) : null,
+      onTap: () {
+        _genderController.text = value;
+        Navigator.pop(context);
+      },
+    );
+  }
+  // kiểm tra có thay đổi dữ liệu không để hiện btn xác nhận gửi api
   void _checkDirty() {
     bool isDirty = _nameController.text != _initialName ||
         _usernameController.text != _initialUsername ||
@@ -76,8 +92,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       });
     }
   }
-
-
+  // widget để chọn giới tính
   void _showGenderPicker() {
     showModalBottomSheet(
       context: context,
@@ -107,19 +122,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       },
     );
   }
-
-  Widget _buildGenderOption(String value) {
-    return ListTile(
-      title: Text(value, style: const TextStyle(color: Colors.white)),
-      trailing: _genderController.text == value ? const Icon(
-          Icons.check, color: Color(0xFF0095F6)) : null,
-      onTap: () {
-        _genderController.text = value;
-        Navigator.pop(context);
-      },
-    );
-  }
-
+  // chọn ảnh đại diện
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
@@ -130,6 +133,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       _checkDirty();
     }
   }
+  // btn nhấn xác nhận thay đổi thông tin
   Future<void> _ChangeEdit() async {
     setState(() {
       _isLoading = true;
@@ -198,16 +202,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
     }
   }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _usernameController.dispose();
-    _bioController.dispose();
-    _genderController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(

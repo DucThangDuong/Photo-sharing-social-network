@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../../data/datasources/global/User.dart';
-import '../../../../../../data/datasources/ApiServices.dart';
 import '../../../../../data/datasources/DTOs/StoryDTO.dart';
+import '../../../../../../data/datasources/global/CallAPIOfUser.dart';
 import '../Widgets/profile_header.dart';
 import '../Widgets/profile_info.dart';
 import '../Widgets/profile_post_grid.dart';
-import '../../../../../../presentation/pages/NewStory.dart';
-import '../../../../../../presentation/pages/StoryViewPage.dart';
+import '../../../../../../presentation/pages/new_story_page.dart';
+import '../../../../../../presentation/pages/view_story_user_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -20,7 +19,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool _hasStories = false;
   UserStoryDTO? _userStory;
-
   @override
   void initState() {
     super.initState();
@@ -31,30 +29,34 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     });
   }
-
+  //lấy danh sách story của người dùng từ api
   Future<void> _fetchUserStories(int userId) async {
     try {
-      final response = await ApiService().get('/story/active');
+      final activeStories = await CallMyAPI.getMyStoryActive();
       if (mounted) {
-        final data = response['data'];
-        if (data != null && data is List) {
-          // Lấy danh sách story của chính current user từ active stories
-          var currentUserStories = data.firstWhere((element) => element['userId'] == userId, orElse: () => null);
-          if (currentUserStories != null) {
-            UserStoryDTO userStory = UserStoryDTO.fromJson(currentUserStories);
-            setState(() {
-              _hasStories = userStory.stories.isNotEmpty;
-              _userStory = userStory;
-            });
+        UserStoryDTO? currentUserStory;
+        for (var story in activeStories) {
+          if (story.userId == userId) {
+            currentUserStory = story;
+            break;
           }
+        }
+        if (currentUserStory != null) {
+          setState(() {
+            _hasStories = currentUserStory!.stories.isNotEmpty;
+            _userStory = currentUserStory;
+          });
         }
       }
     } catch (e) {
       debugPrint('Error fetching user stories: $e');
     }
   }
-
+  //các option để người dùng chọn xem có new story, xem story
   void _showAvatarOptions(BuildContext context) {
+    final currentUser = context.read<UserProvider>().user;
+    if (currentUser == null) return;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF262626),
@@ -80,12 +82,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 ListTile(
                   leading: const Icon(Icons.add_circle_outline, color: Colors.white),
                   title: const Text('Thêm tin mới', style: TextStyle(color: Colors.white, fontSize: 16)),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.pop(ctx);
-                    Navigator.push(
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const StoryUploadPage()),
                     );
+                    _fetchUserStories(currentUser.id);
                   },
                 ),
                 if (_hasStories && _userStory != null)
@@ -114,7 +117,6 @@ class _ProfilePageState extends State<ProfilePage> {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
     final currentUser = context.watch<UserProvider>().user;
@@ -152,22 +154,22 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // lấy thông tin cơ bản
+// lấy thông tin cơ bản
             ProfileHeader(
               user: currentUser,
               onAvatarTap: () => _showAvatarOptions(context),
               hasStories: _hasStories,
             ),
-            // các button chỉnh sửa, chia sẻ trang cá nhân, thêm bạn
+// các button chỉnh sửa, chia sẻ trang cá nhân, thêm bạn
             ProfileInfo(user: currentUser),
             const SizedBox(height: 20),
 
-            // tab bar hinh ảnh , reel, tag
-            const DefaultTabController(
+// tab bar hinh ảnh , reel, tag
+            DefaultTabController(
               length: 3,
               child: Column(
                 children: [
-                  TabBar(
+                  const TabBar(
                     indicatorColor: Colors.white,
                     tabs: [
                       Tab(icon: Icon(Icons.grid_on)),
@@ -175,8 +177,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       Tab(icon: Icon(Icons.assignment_ind_outlined)),
                     ],
                   ),
-                  // các bài viết của người dùng
-                  ProfilePostGrid(),
+// các bài viết của người dùng
+                  ProfilePostGrid(
+                    key: ValueKey(currentUser.postsNumber),
+                    user: currentUser,
+                  ),
                 ],
               ),
             ),

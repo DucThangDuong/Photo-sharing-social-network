@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/Helper.dart';
-import 'EditProfileField.dart';
+import 'edit_field.dart';
 
 class EditMain extends StatelessWidget {
   final TextEditingController nameController;

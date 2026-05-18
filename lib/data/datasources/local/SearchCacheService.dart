@@ -19,13 +19,8 @@ class SearchCacheService {
     final prefs = await SharedPreferences.getInstance();
     final searches = await getRecentSearches();
 
-    // Xóa nếu đã tồn tại (để đẩy lên đầu)
     searches.removeWhere((item) => item['query'] == query);
-
-    // Chèn vào đầu danh sách
     searches.insert(0, {'query': query});
-
-    // Giới hạn tối đa 20 mục
     if (searches.length > 20) {
       searches.removeRange(20, searches.length);
     }

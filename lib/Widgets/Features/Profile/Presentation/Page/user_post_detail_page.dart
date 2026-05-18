@@ -4,13 +4,15 @@ import 'package:untitled/data/Helper.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/ApiServices.dart';
 import '../../../../../data/datasources/global/User.dart';
+import '../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../widgets/comment_bottom_sheet.dart';
-import '../widgets/post_options_sheet.dart';
+import '../widgets/post_edit_sheet.dart';
 
 class UserPostsDetailPage extends StatefulWidget {
   final int initialIndex;
+  final UserModelDTO? user;
 
-  const UserPostsDetailPage({super.key, required this.initialIndex});
+  const UserPostsDetailPage({super.key, required this.initialIndex, this.user});
 
   @override
   State<UserPostsDetailPage> createState() => _UserPostsDetailPageState();
@@ -30,13 +32,21 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPage> {
     _fetchDetailedPosts();
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+  // lấy danh sách bài viết của người dùng từ api
   Future<void> _fetchDetailedPosts() async {
     try {
-      final response = await ApiService().get('/user/posts');
+      final endpoint = widget.user != null ? '/user/posts' : '/user/posts';
+      final response = await ApiService().get(endpoint);
       if (mounted) {
         setState(() {
           var rawList = response['data'] as List? ?? [];
-          _detailedPosts = rawList.map((i) => PostDetailUserDTO.fromJson(i)).toList();
+          _detailedPosts =
+              rawList.map((i) => PostDetailUserDTO.fromJson(i)).toList();
           _isLoading = false;
         });
       }
@@ -46,10 +56,9 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPage> {
       }
     }
   }
-
+  // người dùng like bài viết và cập nhật số lượt thích
   Future<void> _toggleLike(PostDetailUserDTO post) async {
     final bool currentlyLiked = post.isLikedByCurrentUser;
-
     setState(() {
       final index = _detailedPosts.indexWhere((p) => p.id == post.id);
       if (index != -1) {
@@ -61,7 +70,7 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPage> {
     });
 
     try {
-      await ApiService().post('/user/post/${post.id}/like', data: {});
+      await ApiService().post('/post/${post.id}/like', data: {});
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -73,15 +82,21 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPage> {
       }
     }
   }
-
+  // xem các option để người dùng chọn làm gì với bài viết
   Future<void> _showSheet(BuildContext context, Widget sheet, {bool isFull = false}) async {
     final dynamic result = await showModalBottomSheet(
       context: context,
       isScrollControlled: isFull,
       backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => sheet,
     );
+
+    if (result == 'deleted' && mounted) {
+      Navigator.pop(context);
+      return;
+    }
 
     if (result != null && result is PostDetailUserDTO) {
       setState(() {
@@ -92,10 +107,95 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPage> {
       });
     }
   }
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+  // hiển thị thông tin của bài viết này
+  Widget _buildPostItem(BuildContext context, PostDetailUserDTO post) {
+    String imageUrl = '';
+    if (post.postMedia.isNotEmpty) {
+      imageUrl = AppHelper.formatImageURL(post.postMedia[0].mediaUrl);
+    }
+
+    final currentUser = context
+        .watch<UserProvider>()
+        .user;
+    final displayUser = widget.user ?? currentUser;
+    if (displayUser == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white54),
+      );
+    }
+    var imageUserUrl = AppHelper.formatImageURL(
+        displayUser.avatarUrl.toString());
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          leading: CircleAvatar(
+              radius: 15, backgroundImage: NetworkImage(imageUserUrl)),
+          title: Text(displayUser.username ?? 'Người dùng',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold)),
+          trailing: IconButton(
+            icon: const Icon(Icons.more_horiz, color: Colors.white),
+            onPressed: () => _showSheet(context, PostOptionsSheet(post: post)),
+          ),
+        ),
+        if (imageUrl.isNotEmpty)
+          Image.network(imageUrl, width: double.infinity, fit: BoxFit.fitWidth),
+        _buildActionButtons(context, post),
+        if (post.caption != null && post.caption!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Text(
+                post.caption!, style: const TextStyle(color: Colors.white)),
+          ),
+        if (post.likeCount >= 0 && !post.hideLikeCount)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            child: Text('${post.likeCount} lượt thích', style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        if (post.commentCount >= 0 && !post.disableComments)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            child: Text('Xem tất cả ${post.commentCount} bình luận',
+                style: const TextStyle(color: Colors.grey)),
+          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+          child: Text(
+            '${post.createdAt.day}/${post.createdAt.month}/${post.createdAt
+                .year}',
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+  // người dùng tương tác bài viết
+  Widget _buildActionButtons(BuildContext context, PostDetailUserDTO post) {
+    return Row(
+      children: [
+//Người dùng nhấn tym
+        IconButton(
+          icon: Icon(
+            post.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border,
+            color: post.isLikedByCurrentUser ? Colors.red : Colors.white,
+          ),
+          onPressed: () => _toggleLike(post),
+        ),
+        if (!post.disableComments)
+//người dùng nhấn vào nút comment
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+            onPressed: () =>
+                _showSheet(
+                    context, CommentBottomSheet(post: post), isFull: true),
+          ),
+        IconButton(icon: const Icon(Icons.send_outlined, color: Colors.white),
+            onPressed: () {}),
+      ],
+    );
   }
 
   @override
@@ -113,85 +213,15 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : (_detailedPosts.isEmpty
-              ? const Center(child: Text('Không có bài viết', style: TextStyle(color: Colors.white)))
-              : ListView.builder(
-                  controller: _scrollController,
-                  itemCount: _detailedPosts.length,
-                  itemBuilder: (context, index) => _buildPostItem(context, _detailedPosts[index]),
-                )),
+          ? const Center(child: Text(
+          'Không có bài viết', style: TextStyle(color: Colors.white)))
+          : ListView.builder(
+        controller: _scrollController,
+        itemCount: _detailedPosts.length,
+        itemBuilder: (context, index) =>
+            _buildPostItem(context, _detailedPosts[index]),
+      )),
     );
   }
 
-  Widget _buildPostItem(BuildContext context, PostDetailUserDTO post) {
-    String imageUrl = AppHelper.formatImageURL(post.postMedia[0].mediaUrl);
-
-    final currentUser = context.watch<UserProvider>().user;
-    if (currentUser == null) {
-      return const Center(
-          child: CircularProgressIndicator(color: Colors.white54),
-      );
-    }
-    var imageUserUrl = AppHelper.formatImageURL(currentUser.avatarUrl.toString());
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          leading:CircleAvatar(radius: 15, backgroundImage: NetworkImage(imageUserUrl)),
-          title: Text(currentUser?.username ?? 'Người dùng', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          trailing: IconButton(
-            icon: const Icon(Icons.more_horiz, color: Colors.white),
-            onPressed: () => _showSheet(context, PostOptionsSheet(post: post)),
-          ),
-        ),
-        if (imageUrl.isNotEmpty)
-          Image.network(imageUrl, width: double.infinity, fit: BoxFit.fitWidth),
-        _buildActionButtons(context, post),
-        if (post.caption != null && post.caption!.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Text(post.caption!, style: const TextStyle(color: Colors.white)),
-          ),
-        if (post.likeCount >= 0 && !post.hideLikeCount)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            child: Text('${post.likeCount} lượt thích', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        if (post.commentCount >= 0 && !post.disableComments)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            child: Text('Xem tất cả ${post.commentCount} bình luận', style: const TextStyle(color: Colors.grey)),
-          ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-          child: Text(
-            '${post.createdAt.day}/${post.createdAt.month}/${post.createdAt.year}',
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context, PostDetailUserDTO post) {
-    return Row(
-      children: [
-        //Người dùng nhấn tym
-        IconButton(
-          icon: Icon(
-            post.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border, 
-            color: post.isLikedByCurrentUser ? Colors.red : Colors.white,
-          ), 
-          onPressed: () => _toggleLike(post),
-        ),
-        if (!post.disableComments)
-          //người dùng nhấn vào nút comment
-          IconButton(
-            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-            onPressed: () => _showSheet(context, CommentBottomSheet(post: post), isFull: true),
-          ),
-        IconButton(icon: const Icon(Icons.send_outlined, color: Colors.white), onPressed: () {}),
-      ],
-    );
-  }
 }

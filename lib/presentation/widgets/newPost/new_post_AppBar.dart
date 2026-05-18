@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import '../../pages/newCaptionPost.dart';
+import '../../pages/new_caption_post_page.dart';
 
 class NewPostAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool isMultiSelectMode;
@@ -46,12 +46,15 @@ class NewPostAppBar extends StatelessWidget implements PreferredSizeWidget {
               return;
             }
             if (context.mounted) {
-              Navigator.push(
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => FinalSharePostScreen(imagePaths: pathsToShare),
                 ),
               );
+              if (result == true && context.mounted) {
+                Navigator.pop(context);
+              }
             }
           },
           child: const Text(

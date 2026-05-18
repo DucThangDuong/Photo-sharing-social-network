@@ -61,7 +61,6 @@ class _RecentSearchListState extends State<RecentSearchList> {
       setState(() => _recentSearches.clear());
     }
   }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {

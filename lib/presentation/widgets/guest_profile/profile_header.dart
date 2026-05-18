@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../data/datasources/DTOs/UserDTO.dart';
-import '../../../../../presentation/pages/follower_following_page.dart';
+import 'follower_following_guest.dart';
 
-class ProfileHeader extends StatelessWidget {
+class ProfileHeaderGuest extends StatelessWidget {
   final UserModelDTO user;
   final VoidCallback? onAvatarTap;
   final bool hasStories;
-  
-  const ProfileHeader({
-    super.key, 
-    required this.user, 
+  final bool isStorySeen;
+
+  const ProfileHeaderGuest({
+    super.key,
+    required this.user,
     this.onAvatarTap,
     this.hasStories = false,
+    this.isStorySeen = false,
   });
   Widget _buildStatItem(String count, String label, ) {
     return Column(
@@ -36,20 +38,23 @@ class ProfileHeader extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(3),
                   decoration: hasStories
-                      ? const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFFFEDA75),
-                              Color(0xFFFA7E1E),
-                              Color(0xFFD62976),
-                              Color(0xFF962FBF),
-                              Color(0xFF4F5BD5),
-                            ],
-                            begin: Alignment.topRight,
-                            end: Alignment.bottomLeft,
-                          ),
-                        )
+                      ? BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isStorySeen ? Colors.grey[700] : null,
+                    gradient: isStorySeen
+                        ? null
+                        : const LinearGradient(
+                      colors: [
+                        Color(0xFFFEDA75),
+                        Color(0xFFFA7E1E),
+                        Color(0xFFD62976),
+                        Color(0xFF962FBF),
+                        Color(0xFF4F5BD5),
+                      ],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                    ),
+                  )
                       : null,
                   child: Container(
                     padding: const EdgeInsets.all(2),
@@ -67,20 +72,6 @@ class ProfileHeader extends StatelessWidget {
                     ),
                   ),
                 ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0095F6),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.black, width: 2),
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 16),
-                  ),
-                ),
               ],
             ),
           ),
@@ -95,7 +86,7 @@ class ProfileHeader extends StatelessWidget {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const FollowersPage(initialIndex: 0)),
+                          builder: (context) => FollowPageGuest(initialIndex: 0, user: user,)),
                     );
                   },
                   child: _buildStatItem(user.followersNumber.toString(), 'người theo dõi'),
@@ -105,7 +96,7 @@ class ProfileHeader extends StatelessWidget {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const FollowersPage(initialIndex: 1)),
+                          builder: (context) => FollowPageGuest(initialIndex: 1,user: user)),
                     );
                   },
                   child: _buildStatItem(user.followingsNumber.toString(), 'đang theo dõi'),

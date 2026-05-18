@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../data/Helper.dart';
+import '../../../../../presentation/pages/guest_profile_page.dart';
 
 class SearchResultView extends StatelessWidget {
   final String selectedType;
@@ -62,6 +63,14 @@ class SearchResultView extends StatelessWidget {
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           subtitle: Text(user.fullName ?? '',
               style: const TextStyle(color: Colors.grey)),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GuestProfilePage(userId: user.id),
+              ),
+            );
+          },
         );
       },
     );
