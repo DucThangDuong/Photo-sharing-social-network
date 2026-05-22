@@ -3,6 +3,7 @@ import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../data/Helper.dart';
 import '../../../../../presentation/pages/guest_profile_page.dart';
+import '../Page/discover_post_detail_page.dart';
 
 class SearchResultView extends StatelessWidget {
   final String selectedType;
@@ -95,10 +96,20 @@ class SearchResultView extends StatelessWidget {
         String imageUrl = post.postMedia.isNotEmpty
             ? AppHelper.formatImageURL(post.postMedia[0].mediaUrl)
             : '';
-        return imageUrl.isNotEmpty
-            ? Image.network(imageUrl, fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[900]))
-            : Container(color: Colors.grey[900]);
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DiscoverPostDetailPage(postId: post.id),
+              ),
+            );
+          },
+          child: imageUrl.isNotEmpty
+              ? Image.network(imageUrl, fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[900]))
+              : Container(color: Colors.grey[900]),
+        );
       },
     );
   }

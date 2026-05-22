@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../../Widgets/Features/Auth/Presentation/Widgets/InputField/NameAndUserNameInput.dart';
 import '../../../../../../data/datasources/ApiServices.dart';
+import 'package:untitled/data/datasources/global/SnackBarError.dart';
 import '../Widgets/InputField/PasswordInputField.dart';
 import '../Widgets/Header/PasswordHeader.dart';
 import '../Widgets/Button/RememberMeOption.dart';
@@ -23,7 +24,41 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
   bool _isUsernameValid = false;
-  // thẻ a mở link giúp đỡ của instagram
+
+  @override
+  void initState() {
+    super.initState();
+    _usernameController.addListener(_onUsernameChanged);
+  }
+
+  @override
+  void dispose() {
+    _usernameController.removeListener(_onUsernameChanged);
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _fullNameController.dispose();
+    super.dispose();
+  }
+
+  void _onUsernameChanged() {
+    final text = _usernameController.text;
+    final isValid = _validateUsername(text);
+    if (isValid != _isUsernameValid) {
+      setState(() {
+        _isUsernameValid = isValid;
+      });
+    }
+  }
+
+  bool _validateUsername(String text) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return false;
+    if (trimmed.contains(' ')) return false;
+    final vietnameseRegex = RegExp(
+        r'[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]');
+    if (vietnameseRegex.hasMatch(trimmed)) return false;
+    return true;
+  }
   Future<void> _handleUrl() async {
     final Uri url = Uri.parse('https://help.instagram.com/1020536697967549');
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
@@ -33,14 +68,38 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
   // gửi yêu cầu tạo tài khoản lên api
   Future<void> _handleRegister() async {
     final password = _passwordController.text.trim();
-    final username = _usernameController.text.trim();
+    final usernameRaw = _usernameController.text;
+    final username = usernameRaw.trim();
     final fullName = _fullNameController.text.trim();
+    if (username.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập tên người dùng')),
+      );
+      return;
+    }
+    if (usernameRaw.contains(' ')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tên người dùng không được chứa khoảng trắng ở trong')),
+      );
+      return;
+    }
+
+    final vietnameseRegex = RegExp(
+        r'[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]');
+    if (vietnameseRegex.hasMatch(usernameRaw)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tên người dùng không được chứa dấu tiếng Việt')),
+      );
+      return;
+    }
+
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Mật khẩu phải có ít nhất 6 ký tự')),
       );
       return;
     }
+
     setState(() {
       _isLoading = true;
     });
@@ -66,9 +125,7 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Tạo tài khoản thất bại: $e')),
-        );
+        SnackBarError.show(context, prefix: 'Tạo tài khoản thất bại');
       }
     } finally {
       if (mounted) {
@@ -78,7 +135,7 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
       }
     }
   }
-  // widget btn suibmit
+  // widget btn submit
   Widget _buildSubmitButton() {
     return SizedBox(
       width: double.infinity,

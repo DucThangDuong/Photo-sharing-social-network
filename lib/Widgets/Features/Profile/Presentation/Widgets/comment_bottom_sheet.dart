@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:untitled/data/datasources/global/User.dart';
+import 'package:untitled/presentation/pages/guest_profile_page.dart';
+import 'package:untitled/Widgets/Features/Profile/Presentation/Page/profile_page.dart';
 import 'package:untitled/data/datasources/DTOs/PostDTO.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
+import 'package:untitled/data/Helper.dart';
 
 class CommentBottomSheet extends StatefulWidget {
   final PostDetailUserDTO post;
@@ -104,11 +109,33 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                               avatar = avatar.replaceAll('localhost', '10.0.2.2');
                             }
                           }
+                          void navigateToProfile() {
+                            Navigator.pop(context);
+                            final currentUser = context.read<UserProvider>().user;
+                            if (currentUser != null && comment.userId == currentUser.id) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const ProfilePage()),
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => GuestProfilePage(userId: comment.userId)),
+                              );
+                            }
+                          }
+
                           return ListTile(
-                            leading: avatar.isNotEmpty
-                                ? CircleAvatar(radius: 16, backgroundImage: NetworkImage(avatar))
-                                : const CircleAvatar(radius: 16, backgroundColor: Colors.grey),
-                            title: Text(comment.username, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                            leading: GestureDetector(
+                              onTap: navigateToProfile,
+                              child: avatar.isNotEmpty
+                                  ? CircleAvatar(radius: 16, backgroundImage: NetworkImage(avatar))
+                                  : const CircleAvatar(radius: 16, backgroundColor: Colors.grey),
+                            ),
+                            title: GestureDetector(
+                              onTap: navigateToProfile,
+                              child: Text(comment.username, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                            ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -132,11 +159,22 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   }
 
   Widget _buildInputArea(BuildContext context) {
+    final currentUser = context.watch<UserProvider>().user;
+    String userAvatar = '';
+    if (currentUser?.avatarUrl != null && currentUser!.avatarUrl!.isNotEmpty) {
+      userAvatar = AppHelper.formatImageURL(currentUser.avatarUrl!);
+    }
+
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 15, right: 15, top: 10),
       child: Row(
         children: [
-          const CircleAvatar(radius: 18, backgroundColor: Colors.grey),
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: Colors.grey,
+            backgroundImage: userAvatar.isNotEmpty ? NetworkImage(userAvatar) : null,
+            child: userAvatar.isEmpty ? const Icon(Icons.person, color: Colors.white, size: 18) : null,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(

@@ -7,12 +7,14 @@ class PostItem extends StatelessWidget {
   final HomePostDTO post;
   final ValueChanged<HomePostDTO> onPostUpdated;
   final VoidCallback onLikeToggle;
+  final VoidCallback? onUserTap;
 
   const PostItem({
     super.key,
     required this.post,
     required this.onPostUpdated,
     required this.onLikeToggle,
+    this.onUserTap,
   });
   // các btn tương tác bài viết
   Widget _buildActionButtons(BuildContext context) {
@@ -30,9 +32,7 @@ class PostItem extends StatelessWidget {
             icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
             onPressed: () => _showComments(context),
           ),
-        IconButton(icon: const Icon(Icons.send_outlined, color: Colors.white), onPressed: () {}),
         const Spacer(),
-        IconButton(icon: const Icon(Icons.bookmark_border, color: Colors.white), onPressed: () {}),
       ],
     );
   }
@@ -77,12 +77,18 @@ class PostItem extends StatelessWidget {
         // 1. Header: Avatar + Tên người đăng
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-          leading: userAvatar.isNotEmpty
-              ? CircleAvatar(radius: 18, backgroundImage: NetworkImage(userAvatar))
-              : const CircleAvatar(radius: 18, backgroundColor: Colors.grey, child: Icon(Icons.person, color: Colors.white)),
-          title: Text(
-            post.username,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+          leading: GestureDetector(
+            onTap: onUserTap,
+            child: userAvatar.isNotEmpty
+                ? CircleAvatar(radius: 18, backgroundImage: NetworkImage(userAvatar))
+                : const CircleAvatar(radius: 18, backgroundColor: Colors.grey, child: Icon(Icons.person, color: Colors.white)),
+          ),
+          title: GestureDetector(
+            onTap: onUserTap,
+            child: Text(
+              post.username,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+            ),
           ),
           trailing: const Icon(Icons.more_horiz, color: Colors.white),
         ),

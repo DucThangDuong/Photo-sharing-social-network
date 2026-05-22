@@ -102,9 +102,52 @@ class EditMain extends StatelessWidget {
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                onPressed: isLoading ? null : onSave,
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        final name = nameController.text.trim();
+                        final username = usernameController.text.trim();
+
+                        if (name.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Tên không được để trống')),
+                          );
+                          return;
+                        }
+
+                        if (username.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Tên người dùng không được để trống')),
+                          );
+                          return;
+                        }
+
+                        if (usernameController.text.contains(' ')) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Tên người dùng không được chứa khoảng trắng')),
+                          );
+                          return;
+                        }
+                        final vietnameseRegex = RegExp(
+                            r'[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ]');
+                        if (vietnameseRegex.hasMatch(usernameController.text)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Tên người dùng không được chứa dấu tiếng Việt')),
+                          );
+                          return;
+                        }
+                        final specialCharRegex = RegExp(r'^[a-zA-Z0-9_.]+$');
+                        if (!specialCharRegex.hasMatch(username)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Tên người dùng chỉ được dùng chữ cái không dấu, số, dấu chấm (.) và gạch dưới (_)')),
+                          );
+                          return;
+                        }
+
+                        onSave();
+                      },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0095F6),
+                  backgroundColor: const Color(0xFF0095F6),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
                 ),

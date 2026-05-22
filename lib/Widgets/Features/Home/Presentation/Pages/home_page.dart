@@ -6,6 +6,8 @@ import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/ApiServices.dart';
 import '../../../../../data/datasources/global/User.dart';
 import '../../../../../presentation/pages/new_post_page.dart';
+import '../../../../../presentation/pages/guest_profile_page.dart';
+import '../../../Profile/Presentation/Page/profile_page.dart';
 import '../../../Auth/Presentation/Pages/login_page.dart';
 import '../Widgets/post_item.dart';
 
@@ -105,8 +107,6 @@ class _HomePageState extends State<HomePage> {
           }),
           IconButton(icon: const Icon(Icons.favorite_border), onPressed: () {}),
           IconButton(
-              icon: const Icon(Icons.chat_bubble_outline), onPressed: () {}),
-          IconButton(
             icon: const Icon(Icons.exit_to_app, color: Colors.white),
             onPressed: () {
               handleLogout(context);
@@ -135,6 +135,20 @@ class _HomePageState extends State<HomePage> {
                           });
                         },
                         onLikeToggle: () => _toggleLike(post),
+                        onUserTap: () {
+                          final currentUser = context.read<UserProvider>().user;
+                          if (currentUser != null && post.userId == currentUser.id) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ProfilePage()),
+                            );
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => GuestProfilePage(userId: post.userId)),
+                            );
+                          }
+                        },
                       );
                     },
                   ),

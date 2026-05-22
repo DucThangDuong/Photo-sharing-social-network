@@ -129,7 +129,14 @@ class _FollowersPageState extends State<FollowersPage> {
               initialIsFollowing: true,
             ),
           ),
-        );
+        ).then((_) {
+          final currentUser = context.read<UserProvider>().user;
+          if (currentUser != null) {
+            _fetchFollowers(currentUser.id);
+            _fetchFollowings(currentUser.id);
+            _fetchSuggestions();
+          }
+        });
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

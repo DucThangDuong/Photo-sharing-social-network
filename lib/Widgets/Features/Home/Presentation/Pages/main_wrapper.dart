@@ -52,9 +52,6 @@ class _MainWrapperState extends State<MainWrapper> {
   final List<Widget> _pages = [
     const HomePage(),
     const SearchPage(),
-    const Center(
-        child: Text('Reels Page', style: TextStyle(color: Colors.white))),
-    // Placeholder
     const ProfilePage(),
   ];
 
@@ -98,11 +95,6 @@ class _MainWrapperState extends State<MainWrapper> {
             const BottomNavigationBarItem(
               icon: Icon(Icons.search),
               label: 'Search',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.video_library_outlined),
-              activeIcon: Icon(Icons.video_library),
-              label: 'Reels',
             ),
             BottomNavigationBarItem(
               icon: _buildProfileIcon(false),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../../../data/datasources/global/User.dart';
 import '../../../../../data/datasources/DTOs/StoryDTO.dart';
 import '../../../../../../data/datasources/global/CallAPIOfUser.dart';
+import '../../../../../presentation/pages/new_post_page.dart';
 import '../Widgets/profile_header.dart';
 import '../Widgets/profile_info.dart';
 import '../Widgets/profile_post_grid.dart';
@@ -146,8 +147,13 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.add_box_outlined), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.add_box_outlined), onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const NewPostScreen()),
+            );
+          }),
         ],
       ),
       body: SingleChildScrollView(
@@ -173,8 +179,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     indicatorColor: Colors.white,
                     tabs: [
                       Tab(icon: Icon(Icons.grid_on)),
-                      Tab(icon: Icon(Icons.video_library_outlined)),
-                      Tab(icon: Icon(Icons.assignment_ind_outlined)),
                     ],
                   ),
 // các bài viết của người dùng

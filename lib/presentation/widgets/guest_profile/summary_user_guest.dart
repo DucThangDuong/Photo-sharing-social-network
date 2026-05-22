@@ -92,7 +92,11 @@ class _UserSuggestionTileState extends State<SummaryUserGuest> {
                   initialIsFollowing: widget.user.isFollowing,
                 ),
           ),
-        );
+        ).then((isFollowing) {
+          if (isFollowing != null && isFollowing is bool && isFollowing != widget.user.isFollowing) {
+            widget.onFollowToggle?.call(isFollowing);
+          }
+        });
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -8,6 +8,7 @@ import 'register_page.dart';
 import 'find_account_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
+import 'package:untitled/data/datasources/global/SnackBarError.dart';
 
 class InstagramLoginDark extends StatefulWidget {
   @override
@@ -49,7 +50,6 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
           'Password': password,
         },
       );
-
       if (response != null && response['data'] != null) {
         final String? token = response['data']['access_token'];
         if (token != null) {
@@ -66,9 +66,7 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Đăng nhập thất bại: $e')),
-        );
+        SnackBarError.show(context, prefix: 'Tài khoản hoặc mật khẩu không chính xác');
       }
     } finally {
       if (mounted) {
@@ -122,7 +120,7 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
                         // Ô nhập Email/User
                         AuthInputField(
                           controller: _emailController,
-                          hint: 'Tên người dùng, email/số di động',
+                          hint: 'Email người dùng',
                         ),
                         const SizedBox(height: 12),
 

@@ -70,26 +70,6 @@ class ProfileInfo extends StatelessWidget {
                         builder: (context) => const EditProfilePage())
                 );
               })),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: _buildActionButton('Chia sẻ trang cá nhân', () {})),
-              const SizedBox(width: 8),
-              // nút bấm thêm bạn
-              GestureDetector(
-                onTap: () {},
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF262626),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.person_add_outlined,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
             ],
           ),
         ],

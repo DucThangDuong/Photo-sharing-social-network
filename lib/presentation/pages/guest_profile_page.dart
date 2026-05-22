@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:untitled/presentation/pages/view_story_user_page.dart';
+import 'package:provider/provider.dart';
 import '../../data/datasources/DTOs/StoryDTO.dart';
 import '../../data/datasources/DTOs/UserDTO.dart';
 import '../../data/datasources/ApiServices.dart';
 import '../../data/datasources/global/CallAPIOfUser.dart';
+import '../../data/datasources/global/User.dart';
+import '../../data/Helper.dart';
 import '../widgets/guest_profile/ProfilePostGridGuest.dart';
 import '../widgets/guest_profile/profile_header.dart';
 
@@ -41,6 +44,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
   Future<void> _fetchUserProfile() async {
     try {
       final response = await ApiService().get('/user/${widget.userId}');
+      final isFollowUser= await ApiService().get('/user/isFollow?followingId=${widget.userId}');
       if (mounted) {
         final data = response['data'];
         if (data != null) {
@@ -48,6 +52,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
           setState(() {
             _user = loadedUser;
             _isLoading = false;
+            _isFollowing=isFollowUser['data'] as bool;
           });
           _fetchUserStories(loadedUser.id);
         }
@@ -86,6 +91,18 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
 
     try {
       await ApiService().post('/user/follow/${widget.userId}', data: {});
+      try {
+        final profileRes = await ApiService().get('/user/profile');
+        if (profileRes != null && profileRes['data'] != null) {
+          final updatedUser = UserModelDTO.fromJson(profileRes['data']);
+          if (mounted) {
+            Provider.of<UserProvider>(context, listen: false).setUser(updatedUser);
+          }
+        }
+      } catch (profileErr) {
+        debugPrint('Error updating my profile info after follow: $profileErr');
+      }
+
       setState(() {
         _isFollowing = !_isFollowing;
         _isActionLoading = false;
@@ -155,6 +172,42 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                   title: const Text('Xem ảnh đại diện', style: TextStyle(color: Colors.white, fontSize: 16)),
                   onTap: () {
                     Navigator.pop(ctx);
+                    if (_user?.avatarUrl != null && _user!.avatarUrl!.isNotEmpty) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            backgroundColor: Colors.transparent,
+                            insetPadding: EdgeInsets.zero,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                InteractiveViewer(
+                                  child: Image.network(
+                                    AppHelper.formatImageURL(_user!.avatarUrl!),
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 40,
+                                  right: 20,
+                                  child: IconButton(
+                                    icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Người dùng này chưa có ảnh đại diện')),
+                      );
+                    }
                   },
                 ),
               ],
@@ -192,20 +245,26 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
       );
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        Navigator.pop(context, _isFollowing);
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF121212),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context, _isFollowing),
+          ),
+          title: Text(
+            _user!.fullName ?? _user!.username,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        title: Text(
-          _user!.fullName ?? _user!.username,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,6 +378,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

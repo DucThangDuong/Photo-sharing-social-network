@@ -55,16 +55,32 @@ class ApiService {
       return response.data;
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.receiveTimeout) {
-        throw 'Kết nối mạng quá chậm, vui lòng thử lại.';
+        throw ApiException(message: 'Kết nối mạng quá chậm, vui lòng thử lại.');
       } else if (e.type == DioExceptionType.connectionError) {
-        throw 'Không có kết nối Internet.';
+        throw ApiException(message: 'Không có kết nối Internet.');
       } else if (e.response != null) {
-        throw e.response?.data['message'] ?? 'Lỗi hệ thống: ${e.response?.statusCode}';
+        final message = e.response?.data['message'] ?? 'Lỗi hệ thống: ${e.response?.statusCode}';
+        throw ApiException(
+          message: message,
+          statusCode: e.response?.statusCode,
+          data: e.response?.data,
+        );
       } else {
-        throw 'Đã xảy ra lỗi không xác định.';
+        throw ApiException(message: 'Đã xảy ra lỗi không xác định.');
       }
     } catch (e) {
-      throw e.toString();
+      throw ApiException(message: e.toString());
     }
   }
+}
+
+class ApiException implements Exception {
+  final String message;
+  final int? statusCode;
+  final dynamic data;
+
+  ApiException({required this.message, this.statusCode, this.data});
+
+  @override
+  String toString() => message;
 }

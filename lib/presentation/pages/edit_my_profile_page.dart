@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
+import 'package:untitled/data/datasources/global/SnackBarError.dart';
 import 'package:provider/provider.dart';
 import '../../data/datasources/DTOs/UserDTO.dart';
 import '../../data/datasources/global/User.dart';
@@ -190,9 +191,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Cập nhật thất bại: $e')),
-        );
+        SnackBarError.show(context, prefix: 'Cập nhật thất bại');
       }
     } finally {
       if (mounted) {

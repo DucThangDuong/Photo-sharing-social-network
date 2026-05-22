@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/Helper.dart';
+import '../Page/discover_post_detail_page.dart';
 
 class DiscoveryGrid extends StatelessWidget {
   final List<PostSummaryDTO> posts;
@@ -32,18 +33,28 @@ class DiscoveryGrid extends StatelessWidget {
         String imageUrl = post.postMedia.isNotEmpty
             ? AppHelper.formatImageURL(post.postMedia[0].mediaUrl)
             : '';
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            if (imageUrl.isNotEmpty)
-              Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[900]),
-              )
-            else
-              Container(color: Colors.grey[900]),
-          ],
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DiscoverPostDetailPage(postId: post.id),
+              ),
+            );
+          },
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (imageUrl.isNotEmpty)
+                Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[900]),
+                )
+              else
+                Container(color: Colors.grey[900]),
+            ],
+          ),
         );
       },
     );
