@@ -93,8 +93,8 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPage> {
       builder: (context) => sheet,
     );
 
-    if (result == 'deleted' && mounted) {
-      Navigator.pop(context);
+    if (result == 'deleted' || result == 'archived') {
+      if (mounted) Navigator.pop(context);
       return;
     }
 
@@ -105,9 +105,9 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPage> {
           _detailedPosts[index] = result;
         }
       });
-    }
+    } else if (result == 'success') {}
   }
-  // hiển thị thông tin của bài viết này
+// hiển thị thông tin của bài viết này
   Widget _buildPostItem(BuildContext context, PostDetailUserDTO post) {
     String imageUrl = '';
     if (post.postMedia.isNotEmpty) {
@@ -172,7 +172,7 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPage> {
       ],
     );
   }
-  // người dùng tương tác bài viết
+// người dùng tương tác bài viết
   Widget _buildActionButtons(BuildContext context, PostDetailUserDTO post) {
     return Row(
       children: [

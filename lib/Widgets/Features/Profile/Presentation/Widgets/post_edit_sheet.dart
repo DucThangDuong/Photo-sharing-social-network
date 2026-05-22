@@ -9,7 +9,7 @@ import '../Page/edit_caption_post_page.dart';
 class PostOptionsSheet extends StatelessWidget {
   final PostDetailUserDTO post;
   const PostOptionsSheet({super.key, required this.post});
-
+// trang option bài viết để người dùng chọn làm gì với bài viết
   Future<void> _confirmAndUpdate(BuildContext context, String field, dynamic newValue, String confirmMessage) async {
     final bool? confirm = await showDialog<bool>(
       context: context,
@@ -38,9 +38,18 @@ class PostOptionsSheet extends StatelessWidget {
         data: {field: newValue},
       );
 
-      if (response != null && response['data'] != null) {
-        PostDetailUserDTO updatedPost = PostDetailUserDTO.fromJson(response['data']);
-        if (context.mounted) Navigator.pop(context, updatedPost);
+      if (response != null) {
+        if (field == 'IsArchived') {
+          if (context.mounted) Navigator.pop(context, 'archived');
+          return;
+        }
+
+        if (response['data'] != null) {
+          PostDetailUserDTO updatedPost = PostDetailUserDTO.fromJson(response['data']);
+          if (context.mounted) Navigator.pop(context, updatedPost);
+        } else {
+          if (context.mounted) Navigator.pop(context, 'success');
+        }
       } else {
         if (context.mounted) Navigator.pop(context);
       }

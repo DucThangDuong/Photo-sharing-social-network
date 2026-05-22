@@ -7,16 +7,16 @@ import '../../../../../data/datasources/global/User.dart';
 import '../../../../../presentation/pages/guest_profile_page.dart';
 import '../../../Profile/Presentation/Page/profile_page.dart';
 
-class DiscoverPostDetailPage extends StatefulWidget {
+class DiscoverPostDetailArchivedPage extends StatefulWidget {
   final int postId;
 
-  const DiscoverPostDetailPage({super.key, required this.postId});
+  const DiscoverPostDetailArchivedPage({super.key, required this.postId});
 
   @override
-  State<DiscoverPostDetailPage> createState() => _DiscoverPostDetailPageState();
+  State<DiscoverPostDetailArchivedPage> createState() => _DiscoverPostDetailPageState();
 }
 
-class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
+class _DiscoverPostDetailPageState extends State<DiscoverPostDetailArchivedPage> {
   HomePostDTO? _post;
   List<CommentDTO> _comments = [];
   bool _isLoading = true;
@@ -34,11 +34,11 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
     _commentController.dispose();
     super.dispose();
   }
-
-// lấy thông tin bài viết từ api
+// lấy thông tin bài viết từ api trong trạng thái lưu trữ
   Future<void> _fetchPostDetail() async {
     try {
-      final response = await ApiService().get('/post/user/${widget.postId}');
+      final response = await ApiService().get(
+          '/post/user/${widget.postId}/archived');
       debugPrint('DEBUG FETCH POST DETAIL: $response');
       if (response != null) {
         if (mounted) {
@@ -77,7 +77,9 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
       } else {
         if (mounted) setState(() => _isLoading = false);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Error fetching post detail: $e');
+      debugPrint('Stacktrace: $stackTrace');
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -86,8 +88,7 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
       }
     }
   }
-
-// lấy comments
+// lấy comments của bài viết
   Future<void> _fetchComments() async {
     try {
       final response = await ApiService().get(
@@ -106,8 +107,7 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
       }
     }
   }
-
-// tương tác
+// người dùng tương tác
   Future<void> _toggleLike() async {
     if (_post == null) return;
     final bool currentlyLiked = _post!.isLikedByCurrentUser;
@@ -134,8 +134,7 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
       }
     }
   }
-
-// gửi comment lên api
+// người dùng gửi bình luận lên api
   Future<void> _sendComment() async {
     if (_post == null) return;
     final content = _commentController.text.trim();
@@ -166,7 +165,7 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
       if (mounted) setState(() => _isSendingComment = false);
     }
   }
-
+// người dùng nhấn vào giao diện người dùng kia để qua trang người đó
   void _goToUserProfile(int userId) {
     final currentUser = context
         .read<UserProvider>()
@@ -184,7 +183,121 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
       );
     }
   }
+// show options(bỏ lưu trữ ) để tương tác gửi api
+  void _showPostOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF262626),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(
+                      Icons.unarchive_outlined, color: Colors.white),
+                  title: const Text('Bỏ lưu trữ',
+                      style: TextStyle(color: Colors.white, fontSize: 16)),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    await _unarchivePost();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+// widget options để người dùng tương tác bài viết
+  Future<void> _unarchivePost() async {
+    if (_post == null) return;
+    try {
+      await ApiService().put(
+        '/user/post/${_post!.id}',
+        data: {'IsArchived': false},
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã bỏ lưu trữ bài viết')),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi bỏ lưu trữ: $e')),
+        );
+      }
+    }
+  }
+  // thanh để người dùng comment
+  Widget _buildInputArea(BuildContext context) {
+    final currentUser = context
+        .watch<UserProvider>()
+        .user;
+    String myAvatar = '';
+    if (currentUser?.avatarUrl != null && currentUser!.avatarUrl!.isNotEmpty) {
+      myAvatar = AppHelper.formatImageURL(currentUser.avatarUrl!);
+    }
 
+    return Container(
+      color: const Color(0xFF1E1E1E),
+      padding: EdgeInsets.only(bottom: MediaQuery
+          .of(context)
+          .viewInsets
+          .bottom + 10, left: 15, right: 15, top: 10),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: Colors.grey,
+            backgroundImage: myAvatar.isNotEmpty
+                ? NetworkImage(myAvatar)
+                : null,
+            child: myAvatar.isEmpty ? const Icon(
+                Icons.person, color: Colors.white, size: 18) : null,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: _commentController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                hintText: 'Thêm bình luận...',
+                hintStyle: TextStyle(color: Colors.grey),
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+          _isSendingComment
+              ? const SizedBox(width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2))
+              : TextButton(
+            onPressed: _sendComment,
+            child: const Text('Đăng', style: TextStyle(
+                color: Colors.blue, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -251,15 +364,17 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
                             fontSize: 14),
                       ),
                     ),
-                    trailing: const Icon(Icons.more_horiz, color: Colors.white),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.more_horiz, color: Colors.white),
+                      onPressed: () => _showPostOptions(context),
+                    ),
                   ),
 
-                  // Hình ảnh bài viết
                   if (imageUrl.isNotEmpty)
                     Image.network(
                         imageUrl, width: double.infinity, fit: BoxFit.fitWidth),
 
-                  // Thanh tương tác (Like, Comment, Send, Bookmark)
+// Thanh tương tác
                   Row(
                     children: [
                       IconButton(
@@ -282,7 +397,6 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
                     ],
                   ),
 
-                  // Số lượt thích
                   if (_post!.likeCount >= 0 && !_post!.hideLikeCount)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -291,7 +405,6 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
                               fontWeight: FontWeight.bold)),
                     ),
 
-                  // Caption
                   if (_post!.caption != null && _post!.caption!.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -306,7 +419,6 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
                       ),
                     ),
 
-                  // Ngày đăng
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 5),
@@ -413,55 +525,4 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
     );
   }
 
-  Widget _buildInputArea(BuildContext context) {
-    final currentUser = context
-        .watch<UserProvider>()
-        .user;
-    String myAvatar = '';
-    if (currentUser?.avatarUrl != null && currentUser!.avatarUrl!.isNotEmpty) {
-      myAvatar = AppHelper.formatImageURL(currentUser.avatarUrl!);
-    }
-
-    return Container(
-      color: const Color(0xFF1E1E1E),
-      padding: EdgeInsets.only(bottom: MediaQuery
-          .of(context)
-          .viewInsets
-          .bottom + 10, left: 15, right: 15, top: 10),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.grey,
-            backgroundImage: myAvatar.isNotEmpty
-                ? NetworkImage(myAvatar)
-                : null,
-            child: myAvatar.isEmpty ? const Icon(
-                Icons.person, color: Colors.white, size: 18) : null,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              controller: _commentController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                hintText: 'Thêm bình luận...',
-                hintStyle: TextStyle(color: Colors.grey),
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-          _isSendingComment
-              ? const SizedBox(width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2))
-              : TextButton(
-            onPressed: _sendComment,
-            child: const Text('Đăng', style: TextStyle(
-                color: Colors.blue, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
 }

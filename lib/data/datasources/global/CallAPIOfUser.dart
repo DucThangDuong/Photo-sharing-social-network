@@ -63,4 +63,30 @@ class CallMyAPI {
       return [];
     }
   }
+
+  static Future<List<PostSummaryDTO>> getMyLikedPostsSummary() async {
+    try {
+      final response = await ApiService().get('/post/liked');
+      if (response != null && response['data'] != null) {
+        var dataList = response['data'] as List;
+        return dataList.map((json) => PostSummaryDTO.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<List<PostSummaryDTO>> getMyArchivedPostsSummary() async {
+    try {
+      final response = await ApiService().get('/post/archived');
+      if (response != null && response['data'] != null) {
+        var dataList = response['data'] as List;
+        return dataList.map((json) => PostSummaryDTO.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
 }

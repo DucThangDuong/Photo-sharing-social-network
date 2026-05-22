@@ -7,6 +7,8 @@ import '../../../../../presentation/pages/new_post_page.dart';
 import '../Widgets/profile_header.dart';
 import '../Widgets/profile_info.dart';
 import '../Widgets/profile_post_grid.dart';
+import '../Widgets/profile_liked_post_grid.dart';
+import '../Widgets/profile_archived_post_grid.dart';
 import '../../../../../../presentation/pages/new_story_page.dart';
 import '../../../../../../presentation/pages/view_story_user_page.dart';
 
@@ -20,6 +22,8 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool _hasStories = false;
   UserStoryDTO? _userStory;
+  int _selectedTabIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -170,22 +174,38 @@ class _ProfilePageState extends State<ProfilePage> {
             ProfileInfo(user: currentUser),
             const SizedBox(height: 20),
 
-// tab bar hinh ảnh , reel, tag
+// tab bar hinh ảnh , like, lưu trữ
             DefaultTabController(
               length: 3,
               child: Column(
                 children: [
-                  const TabBar(
+                  TabBar(
                     indicatorColor: Colors.white,
-                    tabs: [
+                    onTap: (index) {
+                      setState(() {
+                        _selectedTabIndex = index;
+                      });
+                    },
+                    tabs: const [
                       Tab(icon: Icon(Icons.grid_on)),
+                      Tab(icon: Icon(Icons.favorite_border)),
+                      Tab(icon: Icon(Icons.bookmark_border)),
                     ],
                   ),
-// các bài viết của người dùng
-                  ProfilePostGrid(
-                    key: ValueKey(currentUser.postsNumber),
-                    user: currentUser,
-                  ),
+// nội dung các tab
+                  if (_selectedTabIndex == 0)
+                    ProfilePostGrid(
+                      key: ValueKey(currentUser.postsNumber),
+                      user: currentUser,
+                    )
+                  else if (_selectedTabIndex == 1)
+                    ProfileLikedPostGrid(
+                      user: currentUser,
+                    )
+                  else
+                    ProfileArchivedPostGrid(
+                      user: currentUser,
+                    ),
                 ],
               ),
             ),
