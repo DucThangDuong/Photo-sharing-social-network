@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import '../../../../../data/Helper.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/ApiServices.dart';
+import '../../../../../data/datasources/global/CallAPIOfUser.dart';
 import '../../../../../data/datasources/global/User.dart';
 import '../../../../../presentation/pages/guest_profile_page.dart';
 import '../../../Profile/Presentation/Page/profile_page.dart';
+import '../../../Home/Presentation/Widgets/post_likes_sheet.dart';
 
 class DiscoverPostDetailArchivedPage extends StatefulWidget {
   final int postId;
@@ -37,8 +39,7 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailArchivedPage>
 // lấy thông tin bài viết từ api trong trạng thái lưu trữ
   Future<void> _fetchPostDetail() async {
     try {
-      final response = await ApiService().get(
-          '/post/user/${widget.postId}/archived');
+      final response = await CallMyAPI.getPostDetailArchived(widget.postId);
       debugPrint('DEBUG FETCH POST DETAIL: $response');
       if (response != null) {
         if (mounted) {
@@ -91,12 +92,10 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailArchivedPage>
 // lấy comments của bài viết
   Future<void> _fetchComments() async {
     try {
-      final response = await ApiService().get(
-          '/post/${widget.postId}/comments');
+      final response = await CallMyAPI.getComments(widget.postId);
       if (mounted) {
         setState(() {
-          var rawList = response['data'] as List? ?? [];
-          _comments = rawList.map((i) => CommentDTO.fromJson(i)).toList();
+          _comments = response;
           _isLoading = false;
         });
       }
@@ -120,7 +119,7 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailArchivedPage>
     });
 
     try {
-      await ApiService().post('/post/${_post!.id}/like', data: {});
+      await CallMyAPI.toggleLikePost(_post!.id);
     } catch (e) {
       debugPrint('Error toggling like: $e');
       if (mounted) {
@@ -143,10 +142,7 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailArchivedPage>
     setState(() => _isSendingComment = true);
 
     try {
-      final response = await ApiService().post(
-        '/post/${_post!.id}/comment',
-        data: {'Content': content},
-      );
+      final response = await CallMyAPI.sendComment(_post!.id, content);
 
       if (mounted && response != null && response['data'] != null) {
         final newComment = CommentDTO.fromJson(response['data']);
@@ -228,9 +224,14 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailArchivedPage>
   Future<void> _unarchivePost() async {
     if (_post == null) return;
     try {
-      await ApiService().put(
-        '/user/post/${_post!.id}',
-        data: {'IsArchived': false},
+      await CallMyAPI.updatePost(
+        _post!.id,
+        {
+          'Visibility': _post!.visibility,
+          'IsArchived': false,
+          'HideLikeCount': _post!.hideLikeCount,
+          'DisableComments': _post!.disableComments,
+        },
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -400,9 +401,19 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailArchivedPage>
                   if (_post!.likeCount >= 0 && !_post!.hideLikeCount)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Text('${_post!.likeCount} lượt thích',
-                          style: const TextStyle(color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+                      child: GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => PostLikesSheet(postId: _post!.id),
+                          );
+                        },
+                        child: Text('${_post!.likeCount} lượt thích',
+                            style: const TextStyle(color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      ),
                     ),
 
                   if (_post!.caption != null && _post!.caption!.isNotEmpty)

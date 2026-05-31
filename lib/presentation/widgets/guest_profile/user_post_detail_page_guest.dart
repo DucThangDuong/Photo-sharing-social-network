@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:untitled/data/Helper.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/ApiServices.dart';
+import '../../../../../data/datasources/global/CallAPIOfUser.dart';
 import '../../../../../data/datasources/global/User.dart';
 import '../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../Widgets/Features/Profile/Presentation/Widgets/comment_bottom_sheet.dart';
+import '../../../Widgets/Features/Home/Presentation/Widgets/post_likes_sheet.dart';
 
 class UserPostsDetailPageGuest extends StatefulWidget {
   final int initialIndex;
@@ -40,7 +42,7 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPageGuest> {
   Future<void> _fetchDetailedPosts() async {
     try {
       final endpoint = widget.user != null ? '/user/${widget.user!.id}/posts' : '/user/posts';
-      final response = await ApiService().get(endpoint);
+      final response = await CallMyAPI.getUserPostsDetail(endpoint);
       if (mounted) {
         setState(() {
           var rawList = response['data'] as List? ?? [];
@@ -69,7 +71,7 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPageGuest> {
     });
 
     try {
-      await ApiService().post('/post/${post.id}/like', data: {});
+      await CallMyAPI.toggleLikePost(post.id);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -106,93 +108,6 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPageGuest> {
       });
     }
   }
-  // người dùng tương tác bài viết
-  Widget _buildActionButtons(BuildContext context, PostDetailUserDTO post) {
-    return Row(
-      children: [
-//Người dùng nhấn tym
-        IconButton(
-          icon: Icon(
-            post.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border,
-            color: post.isLikedByCurrentUser ? Colors.red : Colors.white,
-          ),
-          onPressed: () => _toggleLike(post),
-        ),
-        if (!post.disableComments)
-//người dùng nhấn vào nút comment
-          IconButton(
-            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-            onPressed: () =>
-                _showSheet(
-                    context, CommentBottomSheet(post: post), isFull: true),
-          ),
-        IconButton(icon: const Icon(Icons.send_outlined, color: Colors.white),
-            onPressed: () {}),
-      ],
-    );
-  }
-  // hiển thị thông tin của bài viết này
-  Widget _buildPostItem(BuildContext context, PostDetailUserDTO post) {
-    String imageUrl = '';
-    if (post.postMedia.isNotEmpty) {
-      imageUrl = AppHelper.formatImageURL(post.postMedia[0].mediaUrl);
-    }
-
-    final currentUser = context
-        .watch<UserProvider>()
-        .user;
-    final displayUser = widget.user ?? currentUser;
-    if (displayUser == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white54),
-      );
-    }
-    var imageUserUrl = AppHelper.formatImageURL(
-        displayUser.avatarUrl.toString());
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          leading: CircleAvatar(
-              radius: 15, backgroundImage: NetworkImage(imageUserUrl)),
-          title: Text(displayUser.username ?? 'Người dùng',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold)),
-        ),
-        if (imageUrl.isNotEmpty)
-          Image.network(imageUrl, width: double.infinity, fit: BoxFit.fitWidth),
-        _buildActionButtons(context, post),
-        if (post.caption != null && post.caption!.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Text(
-                post.caption!, style: const TextStyle(color: Colors.white)),
-          ),
-        if (post.likeCount >= 0 && !post.hideLikeCount)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            child: Text('${post.likeCount} lượt thích', style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        if (post.commentCount >= 0 && !post.disableComments)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            child: Text('Xem tất cả ${post.commentCount} bình luận',
-                style: const TextStyle(color: Colors.grey)),
-          ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-          child: Text(
-            '${post.createdAt.day}/${post.createdAt.month}/${post.createdAt
-                .year}',
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -208,15 +123,177 @@ class _UserPostsDetailPageState extends State<UserPostsDetailPageGuest> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : (_detailedPosts.isEmpty
-          ? const Center(child: Text(
-          'Không có bài viết', style: TextStyle(color: Colors.white)))
-          : ListView.builder(
-        controller: _scrollController,
-        itemCount: _detailedPosts.length,
-        itemBuilder: (context, index) =>
-            _buildPostItem(context, _detailedPosts[index]),
-      )),
+              ? const Center(
+                  child: Text('Không có bài viết',
+                      style: TextStyle(color: Colors.white)))
+              : ListView.builder(
+                  controller: _scrollController,
+                  itemCount: _detailedPosts.length,
+                  itemBuilder: (context, index) {
+                    final post = _detailedPosts[index];
+                    final currentUser = context.watch<UserProvider>().user;
+                    final displayUser = widget.user ?? currentUser;
+                    return UserPostDetailItemGuest(
+                      post: post,
+                      displayUser: displayUser,
+                      onToggleLike: _toggleLike,
+                      onShowSheet: (ctx, sheet) => _showSheet(ctx, sheet, isFull: sheet is CommentBottomSheet),
+                    );
+                  },
+                )),
+    );
+  }
+}
+
+class UserPostDetailItemGuest extends StatefulWidget {
+  final PostDetailUserDTO post;
+  final UserModelDTO? displayUser;
+  final Function(PostDetailUserDTO) onToggleLike;
+  final Function(BuildContext, Widget) onShowSheet;
+
+  const UserPostDetailItemGuest({
+    super.key,
+    required this.post,
+    required this.displayUser,
+    required this.onToggleLike,
+    required this.onShowSheet,
+  });
+
+  @override
+  State<UserPostDetailItemGuest> createState() => _UserPostDetailItemGuestState();
+}
+
+class _UserPostDetailItemGuestState extends State<UserPostDetailItemGuest> {
+  int _currentImageIndex = 0;
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          icon: Icon(
+            widget.post.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border,
+            color: widget.post.isLikedByCurrentUser ? Colors.red : Colors.white,
+          ),
+          onPressed: () => widget.onToggleLike(widget.post),
+        ),
+        if (!widget.post.disableComments)
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+            onPressed: () => widget.onShowSheet(
+              context,
+              CommentBottomSheet(post: widget.post),
+            ),
+          ),
+        IconButton(
+          icon: const Icon(Icons.send_outlined, color: Colors.white),
+          onPressed: () {},
+        ),
+        Expanded(
+          child: widget.post.postMedia.length > 1
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    widget.post.postMedia.length,
+                    (index) => Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _currentImageIndex == index
+                            ? Colors.blue
+                            : Colors.grey.withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+        const SizedBox(width: 48),
+      ],
     );
   }
 
+  @override
+  Widget build(BuildContext context) {
+    if (widget.displayUser == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white54),
+      );
+    }
+    var imageUserUrl = AppHelper.formatImageURL(
+        widget.displayUser!.avatarUrl.toString());
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          leading: CircleAvatar(
+              radius: 15, backgroundImage: NetworkImage(imageUserUrl)),
+          title: Text(widget.displayUser!.username ?? 'Người dùng',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold)),
+        ),
+        if (widget.post.postMedia.isNotEmpty)
+          AspectRatio(
+            aspectRatio: 1,
+            child: PageView.builder(
+              itemCount: widget.post.postMedia.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentImageIndex = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                String imageUrl = AppHelper.formatImageURL(widget.post.postMedia[index].mediaUrl);
+                return Image.network(
+                  imageUrl,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                );
+              },
+            ),
+          ),
+        _buildActionButtons(context),
+        if (widget.post.caption != null && widget.post.caption!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Text(
+                widget.post.caption!, style: const TextStyle(color: Colors.white)),
+          ),
+        if (widget.post.likeCount >= 0 && !widget.post.hideLikeCount)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            child: GestureDetector(
+              onTap: () => widget.onShowSheet(
+                context,
+                PostLikesSheet(postId: widget.post.id),
+              ),
+              child: Text('${widget.post.likeCount} lượt thích', style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ),
+        if (widget.post.commentCount >= 0 && !widget.post.disableComments)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            child: GestureDetector(
+              onTap: () => widget.onShowSheet(
+                context,
+                CommentBottomSheet(post: widget.post),
+              ),
+              child: Text('Xem tất cả ${widget.post.commentCount} bình luận',
+                  style: const TextStyle(color: Colors.grey)),
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+          child: Text(
+            '${widget.post.createdAt.day}/${widget.post.createdAt.month}/${widget.post.createdAt.year}',
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
 }
+

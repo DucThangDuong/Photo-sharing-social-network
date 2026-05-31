@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../../Widgets/Features/Auth/Presentation/Widgets/InputField/NameAndUserNameInput.dart';
 import '../../../../../../data/datasources/ApiServices.dart';
+import 'package:untitled/data/datasources/global/CallAPIOfUser.dart';
 import 'package:untitled/data/datasources/global/SnackBarError.dart';
 import '../Widgets/InputField/PasswordInputField.dart';
 import '../Widgets/Header/PasswordHeader.dart';
@@ -104,14 +105,11 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
       _isLoading = true;
     });
     try {
-      final response = await ApiService().post(
-        '/auth/register',
-        data: {
-          'Email': widget.email,
-          'Password': password,
-          'UserName': username,
-          'FullName': fullName,
-        },
+      final response = await CallMyAPI.register(
+        widget.email,
+        password,
+        username,
+        fullName,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

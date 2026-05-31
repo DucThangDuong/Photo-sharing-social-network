@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/ApiServices.dart';
+import '../../../../../data/datasources/global/CallAPIOfUser.dart';
 import 'package:provider/provider.dart';
 import '../../../../../data/datasources/global/User.dart';
 import '../../../../../data/datasources/DTOs/UserDTO.dart';
@@ -33,9 +34,14 @@ class PostOptionsSheet extends StatelessWidget {
     if (confirm != true) return;
 
     try {
-      final response = await ApiService().put(
-        '/user/post/${post.id}',
-        data: {field: newValue},
+      final response = await CallMyAPI.updatePost(
+        post.id,
+        {
+          'Visibility': field == 'Visibility' ? newValue : post.visibility,
+          'IsArchived': field == 'IsArchived' ? newValue : post.isArchived,
+          'HideLikeCount': field == 'HideLikeCount' ? newValue : post.hideLikeCount,
+          'DisableComments': field == 'DisableComments' ? newValue : post.disableComments,
+        },
       );
 
       if (response != null) {
@@ -122,11 +128,11 @@ class PostOptionsSheet extends StatelessWidget {
             if (confirm != true) return;
 
             try {
-              await ApiService().delete('/user/post/${post.id}');
+              await CallMyAPI.deletePost(post.id);
 
               if (context.mounted) {
                 try {
-                  final userRes = await ApiService().get('/user/profile');
+                  final userRes = await CallMyAPI.getUserProfile();
                   if (userRes != null && userRes['data'] != null) {
                     UserModelDTO updatedUser = UserModelDTO.fromJson(userRes['data']);
                     Provider.of<UserProvider>(context, listen: false).setUser(updatedUser);

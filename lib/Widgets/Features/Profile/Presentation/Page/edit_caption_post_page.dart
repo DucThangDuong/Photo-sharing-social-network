@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../../data/datasources/ApiServices.dart';
+import '../../../../../data/datasources/global/CallAPIOfUser.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/global/User.dart';
 import '../../../../../data/Helper.dart';
@@ -45,9 +46,9 @@ class _EditPostPageState extends State<EditPostPage> {
   Future<void> _handleUpdate() async {
     setState(() => _isLoading = true);
     try {
-      final response = await ApiService().put(
-        '/post/update/${widget.post.id}',
-        data: {'Caption': _captionController.text.trim()},
+      final response = await CallMyAPI.updatePostCaption(
+        widget.post.id,
+        {'Caption': _captionController.text.trim()},
       );
 
       if (mounted && response != null) {

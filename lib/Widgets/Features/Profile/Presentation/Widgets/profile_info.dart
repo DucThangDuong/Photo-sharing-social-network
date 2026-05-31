@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../../data/Models/User.dart';
 import '../../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../presentation/pages/edit_my_profile_page.dart';
 

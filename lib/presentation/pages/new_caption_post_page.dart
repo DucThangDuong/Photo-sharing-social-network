@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
+import 'package:untitled/data/datasources/global/CallAPIOfUser.dart';
 import 'package:provider/provider.dart';
 import '../../data/datasources/global/User.dart';
 import '../../data/datasources/DTOs/UserDTO.dart';
@@ -50,10 +51,10 @@ class _FinalSharePostScreenState extends State<FinalSharePostScreen> {
           await MultipartFile.fromFile(path),
         ));
       }
-      await ApiService().post('/post/newPost', data: formData);
+      await CallMyAPI.createNewPost(formData);
       if (mounted) {
         try {
-          final userRes = await ApiService().get('/user/profile');
+          final userRes = await CallMyAPI.getUserProfile();
           if (userRes != null && userRes['data'] != null) {
             UserModelDTO updatedUser = UserModelDTO.fromJson(userRes['data']);
             Provider.of<UserProvider>(context, listen: false).setUser(updatedUser);

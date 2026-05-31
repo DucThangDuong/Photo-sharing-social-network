@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/datasources/DTOs/StoryDTO.dart';
 import '../../data/Helper.dart';
 import '../../data/datasources/ApiServices.dart';
+import '../../data/datasources/global/CallAPIOfUser.dart';
 
 class StoryViewPage extends StatefulWidget {
   final UserStoryDTO userStory;
@@ -35,7 +36,7 @@ class _StoryViewPageState extends State<StoryViewPage> {
 
   Future<void> _markStoryAsViewed(int storyId) async {
     try {
-      await ApiService().post('/story/view/$storyId');
+      await CallMyAPI.viewStory(storyId);
     } catch (e) {
       debugPrint("Error marking story as viewed: $e");
     }

@@ -4,6 +4,7 @@ import 'package:untitled/presentation/widgets/guest_profile/summary_user_guest.d
 
 import '../../../data/Helper.dart';
 import '../../../data/datasources/ApiServices.dart';
+import '../../../data/datasources/global/CallAPIOfUser.dart';
 import '../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../data/datasources/global/User.dart';
 import '../../pages/guest_profile_page.dart';
@@ -39,11 +40,10 @@ class _FollowersPageState extends State<FollowPageGuest> {
   // Lấy danh sách người theo dõi của người dùng này
   Future<void> _fetchFollowers(int userId) async {
     try {
-      final response = await ApiService().get('/user/$userId/followers');
+      final response = await CallMyAPI.getFollowers(userId);
       if (mounted) {
         setState(() {
-          var rawList = response['data'] as List? ?? [];
-          _followers = rawList.map((i) => SummaryUserDTO.fromJson(i)).toList();
+          _followers = response;
           _isLoadingFollowers = false;
         });
       }
@@ -56,12 +56,10 @@ class _FollowersPageState extends State<FollowPageGuest> {
   // Lấy danh sách người dùng này theo dõi
   Future<void> _fetchFollowings(int userId) async {
     try {
-      final response = await ApiService().get('/user/$userId/following');
+      final response = await CallMyAPI.getFollowings(userId);
       if (mounted) {
         setState(() {
-          var rawList = response['data'] as List? ?? [];
-          _followings =
-              rawList.map((i) => SuggestedUserDTO.fromJson(i)).toList();
+          _followings = response;
           _isLoadingFollowings = false;
         });
       }
@@ -95,6 +93,10 @@ class _FollowersPageState extends State<FollowPageGuest> {
         : '';
     return InkWell(
       onTap: () {
+        final currentUser = context.read<UserProvider>().user;
+        if (currentUser != null && user.id == currentUser.id) {
+          return; // Không chuyển trang nếu là chính mình
+        }
         Navigator.push(
           context,
           MaterialPageRoute(

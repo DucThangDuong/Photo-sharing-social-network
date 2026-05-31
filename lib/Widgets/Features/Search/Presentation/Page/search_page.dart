@@ -3,6 +3,7 @@ import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../data/datasources/ApiServices.dart';
 import '../../../../../data/datasources/local/SearchCacheService.dart';
+import '../../../../../data/datasources/global/CallAPIOfUser.dart';
 import '../Widget/discovery_grid.dart';
 import '../Widget/recent_search_list.dart';
 import '../Widget/search_input_field.dart';
@@ -41,11 +42,10 @@ class _SearchPageState extends State<SearchPage> {
   // Lấy bài viết nổi bật cho trang khám phá từ api
   Future<void> _fetchDiscoverPosts() async {
     try {
-      final response = await ApiService().get('/post/trending');
+      final response = await CallMyAPI.getTrendingPosts();
       if (mounted) {
         setState(() {
-          var rawList = response['data'] as List? ?? [];
-          _posts = rawList.map((i) => PostSummaryDTO.fromJson(i)).toList();
+          _posts = response;
           _isLoadingDiscover = false;
         });
       }
@@ -61,11 +61,10 @@ class _SearchPageState extends State<SearchPage> {
 
     setState(() => _isLoadingResults = true);
     try {
-      final resultsUser = await ApiService().get('/user/search/users', queryParameters: {'keyword': query.trim()});
+      final resultsUser = await CallMyAPI.searchUsers(query.trim());
       if (mounted) {
         setState(() {
-          var userList = resultsUser['data'] as List? ?? [];
-          _userResults = userList.map((i) => SuggestedUserDTO.fromJson(i)).toList();
+          _userResults = resultsUser;
         });
       }
     } catch (e) {
@@ -73,11 +72,10 @@ class _SearchPageState extends State<SearchPage> {
     }
 
     try {
-      final resultsPost = await ApiService().get('/post/search/posts', queryParameters: {'keyword': query.trim()});
+      final resultsPost = await CallMyAPI.searchPosts(query.trim());
       if (mounted) {
         setState(() {
-          var postList = resultsPost['data'] as List? ?? [];
-          _postResults = postList.map((i) => PostSummaryDTO.fromJson(i)).toList();
+          _postResults = resultsPost;
         });
       }
     } catch (e) {

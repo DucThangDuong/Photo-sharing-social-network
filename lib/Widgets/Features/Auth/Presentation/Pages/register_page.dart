@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
+import 'package:untitled/data/datasources/global/CallAPIOfUser.dart';
 import '../Widgets/InputField/EmailInputField.dart';
 import '../Widgets/Header/EmailHeader.dart';
 import '../Widgets/Button/AuthButton.dart';
@@ -42,8 +43,7 @@ class _RegisterEmailPageState extends State<RegisterEmailPage> {
     } else if (!_isValidEmail(email)) {
       _showError('Định dạng email không hợp lệ');
     } else {
-      var response = await ApiService().post(
-          '/auth/checkEmail', data: {'Email': email});
+      var response = await CallMyAPI.checkEmail(email);
       if (response != null && response['data'] != null) {
         final bool isEmailExist = response['data']['exists'];
         if (isEmailExist == true) {

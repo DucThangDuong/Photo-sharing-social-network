@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import '../../../../../data/Helper.dart';
 import '../../../../../data/datasources/DTOs/PostDTO.dart';
 import '../../../../../data/datasources/ApiServices.dart';
+import '../../../../../data/datasources/global/CallAPIOfUser.dart';
 import '../../../../../data/datasources/global/User.dart';
 import '../../../../../presentation/pages/guest_profile_page.dart';
 import '../../../Profile/Presentation/Page/profile_page.dart';
+import '../../../Home/Presentation/Widgets/post_likes_sheet.dart';
 
 class DiscoverPostDetailPage extends StatefulWidget {
   final int postId;
@@ -38,7 +40,7 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
 // lấy thông tin bài viết từ api
   Future<void> _fetchPostDetail() async {
     try {
-      final response = await ApiService().get('/post/user/${widget.postId}');
+      final response = await CallMyAPI.getPostDetail(widget.postId);
       debugPrint('DEBUG FETCH POST DETAIL: $response');
       if (response != null) {
         if (mounted) {
@@ -90,12 +92,10 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
 // lấy comments
   Future<void> _fetchComments() async {
     try {
-      final response = await ApiService().get(
-          '/post/${widget.postId}/comments');
+      final response = await CallMyAPI.getComments(widget.postId);
       if (mounted) {
         setState(() {
-          var rawList = response['data'] as List? ?? [];
-          _comments = rawList.map((i) => CommentDTO.fromJson(i)).toList();
+          _comments = response;
           _isLoading = false;
         });
       }
@@ -120,7 +120,7 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
     });
 
     try {
-      await ApiService().post('/post/${_post!.id}/like', data: {});
+      await CallMyAPI.toggleLikePost(_post!.id);
     } catch (e) {
       debugPrint('Error toggling like: $e');
       if (mounted) {
@@ -144,10 +144,7 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
     setState(() => _isSendingComment = true);
 
     try {
-      final response = await ApiService().post(
-        '/post/${_post!.id}/comment',
-        data: {'Content': content},
-      );
+      final response = await CallMyAPI.sendComment(_post!.id, content);
 
       if (mounted && response != null && response['data'] != null) {
         final newComment = CommentDTO.fromJson(response['data']);
@@ -286,9 +283,19 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
                   if (_post!.likeCount >= 0 && !_post!.hideLikeCount)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: Text('${_post!.likeCount} lượt thích',
-                          style: const TextStyle(color: Colors.white,
-                              fontWeight: FontWeight.bold)),
+                      child: GestureDetector(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => PostLikesSheet(postId: _post!.id),
+                          );
+                        },
+                        child: Text('${_post!.likeCount} lượt thích',
+                            style: const TextStyle(color: Colors.white,
+                                fontWeight: FontWeight.bold)),
+                      ),
                     ),
 
                   // Caption

@@ -20,7 +20,7 @@ class EmptyFollowerState extends StatelessWidget {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 40),
           child: Text(
-            'Bạn sẽ thấy tất cả những người\ntheo dõi mình tại đây',
+            'Bạn sẽ thấy tất cả những người\ntheo dõi tại đây',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, height: 1.3),
           ),

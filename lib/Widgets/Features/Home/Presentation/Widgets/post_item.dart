@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:untitled/data/datasources/DTOs/PostDTO.dart';
 import 'package:untitled/data/Helper.dart';
 import '../../../Profile/Presentation/Widgets/comment_bottom_sheet.dart';
+import 'post_likes_sheet.dart';
 
-class PostItem extends StatelessWidget {
+class PostItem extends StatefulWidget {
   final HomePostDTO post;
   final ValueChanged<HomePostDTO> onPostUpdated;
   final VoidCallback onLikeToggle;
@@ -16,40 +17,72 @@ class PostItem extends StatelessWidget {
     required this.onLikeToggle,
     this.onUserTap,
   });
+
+  @override
+  State<PostItem> createState() => _PostItemState();
+}
+
+class _PostItemState extends State<PostItem> {
+  int _currentImageIndex = 0;
+
   // các btn tương tác bài viết
   Widget _buildActionButtons(BuildContext context) {
     return Row(
       children: [
         IconButton(
           icon: Icon(
-            post.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border,
-            color: post.isLikedByCurrentUser ? Colors.red : Colors.white,
+            widget.post.isLikedByCurrentUser ? Icons.favorite : Icons.favorite_border,
+            color: widget.post.isLikedByCurrentUser ? Colors.red : Colors.white,
           ),
-          onPressed: onLikeToggle,
+          onPressed: widget.onLikeToggle,
         ),
-        if (!post.disableComments)
+        if (!widget.post.disableComments)
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
             onPressed: () => _showComments(context),
           ),
-        const Spacer(),
+        
+        Expanded(
+          child: widget.post.postMedia.length > 1
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    widget.post.postMedia.length,
+                    (index) => Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _currentImageIndex == index
+                            ? Colors.blue
+                            : Colors.grey.withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+        
+        const SizedBox(width: 48),
       ],
     );
   }
+
   // hiển thị danh sách comment của bài post
   void _showComments(BuildContext context) {
     final postDetail = PostDetailUserDTO(
-      id: post.id,
-      caption: post.caption,
-      createdAt: post.createdAt,
-      visibility: post.visibility,
-      hideLikeCount: post.hideLikeCount,
-      disableComments: post.disableComments,
-      postMedia: post.postMedia,
-      likeCount: post.likeCount,
-      commentCount: post.commentCount,
-      isLikedByCurrentUser: post.isLikedByCurrentUser,
-      isArchived: post.isArchived,
+      id: widget.post.id,
+      caption: widget.post.caption,
+      createdAt: widget.post.createdAt,
+      visibility: widget.post.visibility,
+      hideLikeCount: widget.post.hideLikeCount,
+      disableComments: widget.post.disableComments,
+      postMedia: widget.post.postMedia,
+      likeCount: widget.post.likeCount,
+      commentCount: widget.post.commentCount,
+      isLikedByCurrentUser: widget.post.isLikedByCurrentUser,
+      isArchived: widget.post.isArchived,
     );
 
     showModalBottomSheet(
@@ -62,13 +95,11 @@ class PostItem extends StatelessWidget {
       builder: (context) => CommentBottomSheet(post: postDetail),
     );
   }
+
   @override
   Widget build(BuildContext context) {
-    String imageUrl = post.postMedia.isNotEmpty
-        ? AppHelper.formatImageURL(post.postMedia[0].mediaUrl)
-        : '';
-    String userAvatar = post.avatarUrl != null && post.avatarUrl!.isNotEmpty
-        ? AppHelper.formatImageURL(post.avatarUrl!)
+    String userAvatar = widget.post.avatarUrl != null && widget.post.avatarUrl!.isNotEmpty
+        ? AppHelper.formatImageURL(widget.post.avatarUrl!)
         : '';
 
     return Column(
@@ -78,57 +109,85 @@ class PostItem extends StatelessWidget {
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 12),
           leading: GestureDetector(
-            onTap: onUserTap,
+            onTap: widget.onUserTap,
             child: userAvatar.isNotEmpty
                 ? CircleAvatar(radius: 18, backgroundImage: NetworkImage(userAvatar))
                 : const CircleAvatar(radius: 18, backgroundColor: Colors.grey, child: Icon(Icons.person, color: Colors.white)),
           ),
           title: GestureDetector(
-            onTap: onUserTap,
+            onTap: widget.onUserTap,
             child: Text(
-              post.username,
+              widget.post.username,
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
             ),
           ),
           trailing: const Icon(Icons.more_horiz, color: Colors.white),
         ),
 
-        // 2. Hình ảnh bài viết
-        if (imageUrl.isNotEmpty)
-          Image.network(imageUrl, width: double.infinity, fit: BoxFit.fitWidth),
+        // 2. Hình ảnh bài viết (hỗ trợ trượt nhiều ảnh)
+        if (widget.post.postMedia.isNotEmpty)
+          AspectRatio(
+            aspectRatio: 1, // Fix khung hình vuông (hoặc chỉnh thành 4/5 nếu muốn dọc hơn)
+            child: PageView.builder(
+              itemCount: widget.post.postMedia.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentImageIndex = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                String imageUrl = AppHelper.formatImageURL(widget.post.postMedia[index].mediaUrl);
+                return Image.network(
+                  imageUrl, 
+                  width: double.infinity, 
+                  fit: BoxFit.cover,
+                );
+              },
+            ),
+          ),
 
         // 3. Thanh tương tác
         _buildActionButtons(context),
 
         // 4. Số lượt thích
-        if (post.likeCount >= 0 && !post.hideLikeCount)
+        if (widget.post.likeCount >= 0 && !widget.post.hideLikeCount)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Text('${post.likeCount} lượt thích',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => PostLikesSheet(postId: widget.post.id),
+                );
+              },
+              child: Text('${widget.post.likeCount} lượt thích',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
           ),
 
         // 5. Caption
-        if (post.caption != null && post.caption!.isNotEmpty)
+        if (widget.post.caption != null && widget.post.caption!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
             child: RichText(
               text: TextSpan(
                 style: const TextStyle(color: Colors.white),
                 children: [
-                  TextSpan(text: post.caption!),
+                  TextSpan(text: widget.post.caption!),
                 ],
               ),
             ),
           ),
 
         // 6. Số bình luận
-        if (post.commentCount >= 0 && !post.disableComments)
+        if (widget.post.commentCount >= 0 && !widget.post.disableComments)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
             child: GestureDetector(
               onTap: () => _showComments(context),
-              child: Text('Xem tất cả ${post.commentCount} bình luận',
+              child: Text('Xem tất cả ${widget.post.commentCount} bình luận',
                   style: const TextStyle(color: Colors.grey, fontSize: 14)),
             ),
           ),
@@ -137,7 +196,7 @@ class PostItem extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
           child: Text(
-            '${post.createdAt.day}/${post.createdAt.month}/${post.createdAt.year}',
+            '${widget.post.createdAt.day}/${widget.post.createdAt.month}/${widget.post.createdAt.year}',
             style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ),
@@ -145,5 +204,4 @@ class PostItem extends StatelessWidget {
       ],
     );
   }
-
 }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../pages/guest_profile_page.dart';
 import '../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../data/datasources/ApiServices.dart';
+import '../../../data/datasources/global/CallAPIOfUser.dart';
 import '../../../data/datasources/global/User.dart';
 import '../../../data/Helper.dart';
 
@@ -27,7 +28,7 @@ class _UserSuggestionTileState extends State<SummaryUserGuest> {
 
   Future<void> _updateUserProfile() async {
     try {
-      final response = await ApiService().get('/user/profile');
+      final response = await CallMyAPI.getUserProfile();
       if (mounted) {
         final updatedUser = UserModelDTO.fromJson(response['data']);
         Provider.of<UserProvider>(context, listen: false).setUser(updatedUser);
@@ -49,8 +50,7 @@ class _UserSuggestionTileState extends State<SummaryUserGuest> {
 
     try {
       // Toggle follow API
-      final response = await ApiService().post(
-          '/user/follow/$userId', data: {});
+      final response = await CallMyAPI.followUser(userId);
       final bool newFollowStatus = response['data']['isFollowed'] ??
           !isFollowing;
 
@@ -83,6 +83,9 @@ class _UserSuggestionTileState extends State<SummaryUserGuest> {
 
     return InkWell(
       onTap: () {
+        if (currentUser != null && widget.user.id == currentUser.id) {
+          return; // Không chuyển trang nếu là chính mình
+        }
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -142,35 +145,33 @@ class _UserSuggestionTileState extends State<SummaryUserGuest> {
             ),
 
             // Nút Theo dõi / Đang theo dõi
-            SizedBox(
-              height: 32,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _toggleFollow,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.user.id == currentUser!.id ? Colors
-                      .grey[800] : const Color(0xFF4C68FF),
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            if (currentUser == null || widget.user.id != currentUser.id)
+              SizedBox(
+                height: 32,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _toggleFollow,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.user.isFollowing ? Colors.grey[800] : const Color(0xFF4C68FF),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                  width: 16, height: 16,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white),
-                )
-                    : Text(
-                  widget.user.id == currentUser!.id
-                      ? 'Hủy theo dõi'
-                      : 'Theo dõi',
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.bold),
+                  child: _isLoading
+                      ? const SizedBox(
+                    width: 16, height: 16,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
+                  )
+                      : Text(
+                    widget.user.isFollowing ? 'Đang theo dõi' : 'Theo dõi',
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-            ),
 
             // Nút Xóa
             if (widget.onRemovePressed != null) ...[

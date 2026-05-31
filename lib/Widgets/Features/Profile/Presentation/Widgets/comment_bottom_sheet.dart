@@ -5,6 +5,7 @@ import 'package:untitled/presentation/pages/guest_profile_page.dart';
 import 'package:untitled/Widgets/Features/Profile/Presentation/Page/profile_page.dart';
 import 'package:untitled/data/datasources/DTOs/PostDTO.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
+import 'package:untitled/data/datasources/global/CallAPIOfUser.dart';
 import 'package:untitled/data/Helper.dart';
 
 class CommentBottomSheet extends StatefulWidget {
@@ -35,11 +36,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
   Future<void> _fetchComments() async {
     try {
-      final response = await ApiService().get('/post/${widget.post.id}/comments');
+      final response = await CallMyAPI.getComments(widget.post.id);
       if (mounted) {
         setState(() {
-          var rawList = response['data'] as List? ?? [];
-          _comments = rawList.map((i) => CommentDTO.fromJson(i)).toList();
+          _comments = response;
           _isLoading = false;
         });
       }
@@ -57,10 +57,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     setState(() => _isSending = true);
 
     try {
-      final response = await ApiService().post(
-        '/post/${widget.post.id}/comment',
-        data: {'Content': content},
-      );
+      final response = await CallMyAPI.sendComment(widget.post.id, content);
 
       if (mounted && response != null && response['data'] != null) {
         final newComment = CommentDTO.fromJson(response['data']);

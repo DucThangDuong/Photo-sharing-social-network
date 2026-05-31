@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import '../../../Home/Presentation/Pages/main_wrapper.dart';
 import '../Widgets/Button/AuthButton.dart';
@@ -8,6 +9,7 @@ import 'register_page.dart';
 import 'find_account_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
+import 'package:untitled/data/datasources/global/CallAPIOfUser.dart';
 import 'package:untitled/data/datasources/global/SnackBarError.dart';
 
 class InstagramLoginDark extends StatefulWidget {
@@ -43,18 +45,27 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
     });
 
     try {
-      final response = await ApiService().post(
-        '/auth/login',
-        data: {
-          'Email': email,
-          'Password': password,
-        },
-      );
+      final response = await CallMyAPI.login(email, password);
       if (response != null && response['data'] != null) {
         final String? token = response['data']['access_token'];
         if (token != null) {
           const storage = FlutterSecureStorage();
           await storage.write(key: 'access_token', value: token);
+          try {
+            await FirebaseMessaging.instance.requestPermission();
+
+            String? fcmToken = await FirebaseMessaging.instance.getToken();
+
+            if (fcmToken != null) {
+              await ApiService().post('/auth/save-device-token', data: {
+                'deviceToken': fcmToken,
+                'deviceType': 'android'
+              });
+              print("Đã lưu FCM Token: $fcmToken");
+            }
+          } catch (e) {
+            print("Lỗi cấu hình Firebase Token: $e");
+          }
         }
       }
 
@@ -142,13 +153,13 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
                           onPressed: _isLoading ? () {} : _handleLogin,
                         ),
 
-                        TextButton(
-                          onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const FindAccountPage())
-                          ),
-                          child: const Text('Quên mật khẩu?', style: TextStyle(color: Colors.white)),
-                        ),
+                        // TextButton(
+                        //   onPressed: () => Navigator.push(
+                        //       context,
+                        //       MaterialPageRoute(builder: (context) => const FindAccountPage())
+                        //   ),
+                        //   child: const Text('Quên mật khẩu?', style: TextStyle(color: Colors.white)),
+                        // ),
 
                         const Spacer(flex: 2),
 
@@ -156,7 +167,7 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
                         _buildCreateAccountButton(),
                         const SizedBox(height: 15),
 
-                        const MetaFooter(),
+                        // const MetaFooter(),
                         const SizedBox(height: 10),
                       ],
                     ),

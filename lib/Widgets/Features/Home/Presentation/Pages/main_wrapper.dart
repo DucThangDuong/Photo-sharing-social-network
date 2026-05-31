@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../../../data/datasources/ApiServices.dart';
+import '../../../../../../data/datasources/global/CallAPIOfUser.dart';
 import '../../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../../../../data/datasources/global/User.dart';
 import '../../../../../data/Helper.dart';
 import '../../../Profile/Presentation/Page/profile_page.dart';
 import '../../../Search/Presentation/Page/search_page.dart';
+import '../../../Notification/Presentation/Page/notification_page.dart';
 import 'home_page.dart';
 
 
@@ -29,7 +31,7 @@ class _MainWrapperState extends State<MainWrapper> {
   // lấy dữ liệu user được lưu trong cache
   Future<void> _fetchUserProfile() async {
     try {
-      final userRes = await ApiService().get('/user/profile');
+      final userRes = await CallMyAPI.getUserProfile();
       if (userRes != null && userRes['data'] != null) {
         UserModelDTO user = UserModelDTO.fromJson(userRes['data']);
         if (mounted) {
@@ -52,6 +54,7 @@ class _MainWrapperState extends State<MainWrapper> {
   final List<Widget> _pages = [
     const HomePage(),
     const SearchPage(),
+    const NotificationPage(),
     const ProfilePage(),
   ];
 
@@ -95,6 +98,11 @@ class _MainWrapperState extends State<MainWrapper> {
             const BottomNavigationBarItem(
               icon: Icon(Icons.search),
               label: 'Search',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.favorite_border),
+              activeIcon: Icon(Icons.favorite),
+              label: 'Notification',
             ),
             BottomNavigationBarItem(
               icon: _buildProfileIcon(false),

@@ -43,8 +43,8 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
   // lấy thông tin người dùng muốn xem từ api
   Future<void> _fetchUserProfile() async {
     try {
-      final response = await ApiService().get('/user/${widget.userId}');
-      final isFollowUser= await ApiService().get('/user/isFollow?followingId=${widget.userId}');
+      final response = await CallMyAPI.getUserProfileById(widget.userId);
+      final isFollowUser = await CallMyAPI.isFollowUser(widget.userId);
       if (mounted) {
         final data = response['data'];
         if (data != null) {
@@ -52,7 +52,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
           setState(() {
             _user = loadedUser;
             _isLoading = false;
-            _isFollowing=isFollowUser['data'] as bool;
+            _isFollowing = isFollowUser['data'] as bool;
           });
           _fetchUserStories(loadedUser.id);
         }
@@ -90,9 +90,9 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
     setState(() => _isActionLoading = true);
 
     try {
-      await ApiService().post('/user/follow/${widget.userId}', data: {});
+      await CallMyAPI.followUser(widget.userId);
       try {
-        final profileRes = await ApiService().get('/user/profile');
+        final profileRes = await CallMyAPI.getUserProfile();
         if (profileRes != null && profileRes['data'] != null) {
           final updatedUser = UserModelDTO.fromJson(profileRes['data']);
           if (mounted) {
@@ -332,25 +332,6 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                                       fontSize: 14,
                                     ),
                                   ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF262626),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'Nhắn tin',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
                           ),
                         ),
                       ),

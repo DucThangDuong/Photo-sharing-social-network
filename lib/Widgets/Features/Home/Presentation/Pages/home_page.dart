@@ -58,7 +58,7 @@ class _HomePageState extends State<HomePage> {
     });
 
     try {
-      await ApiService().post('/post/${post.id}/like', data: {});
+      await CallMyAPI.toggleLikePost(post.id);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -95,7 +95,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: const Text('Instagram',
+        title: const Text('MU',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
         actions: [
           IconButton(icon: const Icon(Icons.add_box_outlined), onPressed: () {
@@ -105,7 +105,6 @@ class _HomePageState extends State<HomePage> {
                   builder: (context) => const NewPostScreen()),
             );
           }),
-          IconButton(icon: const Icon(Icons.favorite_border), onPressed: () {}),
           IconButton(
             icon: const Icon(Icons.exit_to_app, color: Colors.white),
             onPressed: () {

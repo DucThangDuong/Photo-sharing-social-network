@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import '../../data/datasources/ApiServices.dart';
+import '../../data/datasources/global/CallAPIOfUser.dart';
 import '../../data/datasources/global/User.dart';
 import 'package:provider/provider.dart';
 
@@ -45,8 +46,8 @@ class _StoryUploadPageState extends State<StoryUploadPage> {
       var formData = FormData.fromMap({
         'image': await MultipartFile.fromFile(_currentImageFile!.path),
       });
-      
-      await ApiService().post('/story/add', data: formData);
+
+      await CallMyAPI.addNewStory(formData);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

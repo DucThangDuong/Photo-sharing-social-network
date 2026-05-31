@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
+import 'package:untitled/data/datasources/global/CallAPIOfUser.dart';
 import 'package:untitled/data/datasources/global/SnackBarError.dart';
 import 'package:provider/provider.dart';
 import '../../data/datasources/DTOs/UserDTO.dart';
@@ -165,7 +166,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ));
       }
 
-      await ApiService().put('/user/profile', data: formData);
+      await CallMyAPI.updateUserProfile(formData);
 
       if (mounted) {
         setState(() {
@@ -176,7 +177,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           _newAvatar = null;
           _isDirty = false;
         });
-        final userRes = await ApiService().get('/user/profile');
+        final userRes = await CallMyAPI.getUserProfile();
         if (userRes != null && userRes['data'] != null) {
           UserModelDTO user = UserModelDTO.fromJson(userRes['data']);
           if (mounted) {

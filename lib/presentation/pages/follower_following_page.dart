@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/datasources/DTOs/UserDTO.dart';
 import '../../data/datasources/ApiServices.dart';
+import '../../data/datasources/global/CallAPIOfUser.dart';
 import '../../data/datasources/global/User.dart';
 import '../../data/Helper.dart';
 import '../widgets/follower_following/follower_following_AppBar.dart';
@@ -42,11 +43,10 @@ class _FollowersPageState extends State<FollowersPage> {
   // Lấy danh sách người theo dõi mình
   Future<void> _fetchFollowers(int userId) async {
     try {
-      final response = await ApiService().get('/user/$userId/followers');
+      final response = await CallMyAPI.getFollowers(userId);
       if (mounted) {
         setState(() {
-          var rawList = response['data'] as List? ?? [];
-          _followers = rawList.map((i) => SummaryUserDTO.fromJson(i)).toList();
+          _followers = response;
           _isLoadingFollowers = false;
         });
       }
@@ -59,12 +59,10 @@ class _FollowersPageState extends State<FollowersPage> {
   // Lấy danh sách người mình đang theo dõi
   Future<void> _fetchFollowings(int userId) async {
     try {
-      final response = await ApiService().get('/user/$userId/following');
+      final response = await CallMyAPI.getFollowings(userId);
       if (mounted) {
         setState(() {
-          var rawList = response['data'] as List? ?? [];
-          _followings =
-              rawList.map((i) => SuggestedUserDTO.fromJson(i)).toList();
+          _followings = response;
           _isLoadingFollowings = false;
         });
       }
@@ -77,12 +75,10 @@ class _FollowersPageState extends State<FollowersPage> {
   // Lấy danh sách user gợi ý cho người dùng
   Future<void> _fetchSuggestions() async {
     try {
-      final response = await ApiService().get('/user/suggestions');
+      final response = await CallMyAPI.getSuggestions();
       if (mounted) {
         setState(() {
-          var rawList = response['data'] as List? ?? [];
-          _suggestions =
-              rawList.map((i) => SuggestedUserDTO.fromJson(i)).toList();
+          _suggestions = response;
           _isLoadingSuggestions = false;
         });
       }
