@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled/data/datasources/global/CallAPIOfUser.dart';
@@ -73,6 +74,16 @@ class _HomePageState extends State<HomePage> {
   // đăng xuất tài khoản
   Future<void> handleLogout(BuildContext context) async {
     try {
+      String? deviceToken;
+      try {
+        deviceToken = await FirebaseMessaging.instance.getToken();
+      } catch (e) {
+        print("Không thể lấy FCM Token khi đăng xuất: $e");
+      }
+
+      // Gọi API đăng xuất
+      await CallMyAPI.logout(deviceToken);
+      
       const storage = FlutterSecureStorage();
       await storage.delete(key: 'access_token');
       if (context.mounted) {

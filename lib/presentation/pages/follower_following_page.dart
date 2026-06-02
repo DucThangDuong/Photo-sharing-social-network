@@ -18,7 +18,7 @@ class FollowersPage extends StatefulWidget {
 }
 
 class _FollowersPageState extends State<FollowersPage> {
-  List<SummaryUserDTO> _followers = [];
+  List<SuggestedUserDTO> _followers = [];
   List<SuggestedUserDTO> _followings = [];
   List<SuggestedUserDTO> _suggestions = [];
   bool _isLoadingFollowers = true;
@@ -108,10 +108,16 @@ class _FollowersPageState extends State<FollowersPage> {
           _followings[followingIndex] = _followings[followingIndex].copyWith(isFollowing: false);
         }
       }
+      
+      int followerIndex = _followers.indexWhere((u) => u.id == user.id);
+      if (followerIndex != -1) {
+        _followers[followerIndex] = _followers[followerIndex].copyWith(isFollowing: isFollowing);
+      }
     });
   }
+
   // widget component hiển thị thông tin người dùng summary
-  Widget _buildUserTile(SummaryUserDTO user) {
+  Widget _buildUserTile(SuggestedUserDTO user) {
     String avatarUrl = user.avatarUrl != null && user.avatarUrl!.isNotEmpty
         ? AppHelper.formatImageURL(user.avatarUrl!)
         : '';

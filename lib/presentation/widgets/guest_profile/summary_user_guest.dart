@@ -166,7 +166,7 @@ class _UserSuggestionTileState extends State<SummaryUserGuest> {
                         strokeWidth: 2, color: Colors.white),
                   )
                       : Text(
-                    widget.user.isFollowing ? 'Đang theo dõi' : 'Theo dõi',
+                    widget.user.isFollowing ? 'Hủy theo dõi' : 'Theo dõi',
                     style: const TextStyle(
                         fontSize: 14, fontWeight: FontWeight.bold),
                   ),

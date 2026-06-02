@@ -32,6 +32,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
   bool _isActionLoading = false;
   bool _hasStories = false;
   bool _isStorySeen = false;
+  List<HighlightDTO> _highlights = [];
 
   @override
   void initState() {
@@ -66,22 +67,62 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
   Future<void> _fetchUserStories(int userId) async {
     try {
       final activeStories = await CallMyAPI.getGuestStoryActive(userId);
+      final userHighlights = await CallMyAPI.getUserHighlights(userId);
+      
       if (mounted) {
         UserStoryDTO? currentUserStory;
         for (var story in activeStories) {
             currentUserStory = story;
             break;
         }
-        if (currentUserStory != null) {
-          setState(() {
-            _hasStories = currentUserStory!.stories.isNotEmpty;
+        setState(() {
+          if (currentUserStory != null) {
+            _hasStories = currentUserStory.stories.isNotEmpty;
             _userStory = currentUserStory;
             _isStorySeen = currentUserStory.hasSeen;
-          });
-        }
+          }
+          _highlights = userHighlights;
+        });
       }
     } catch (e) {
       debugPrint('Error fetching user stories: $e');
+    }
+  }
+
+  void _viewHighlight(HighlightDTO highlight) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.white)),
+    );
+    
+    final highlightDetail = await CallMyAPI.getGuestHighlightDetails(highlight.id);
+    if (mounted) Navigator.pop(context);
+
+    if (highlightDetail == null || highlightDetail.stories.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Không thể tải điểm nhấn hoặc điểm nhấn rỗng')));
+      }
+      return;
+    }
+
+    if (_user == null) return;
+
+    UserStoryDTO dummyUserStory = UserStoryDTO(
+      userId: _user!.id,
+      username: _user!.username,
+      avatarUrl: _user!.avatarUrl,
+      hasSeen: true,
+      stories: highlightDetail.stories,
+    );
+
+    if (mounted) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StoryViewPage(userStory: dummyUserStory, isGuestHighlight: true),
+        ),
+      );
     }
   }
   // me follow người dùng này
@@ -325,7 +366,7 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                                   )
                                 : Text(
-                                    _isFollowing ? 'Đang theo dõi' : 'Theo dõi',
+                                    _isFollowing ? 'Hủy theo dõi' : 'Theo dõi',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -340,7 +381,57 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
+            
+            if (_highlights.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: _highlights.map((highlight) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 15.0),
+                        child: GestureDetector(
+                          onTap: () => _viewHighlight(highlight),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.grey, width: 1),
+                                  image: highlight.coverUrl != null && highlight.coverUrl!.isNotEmpty
+                                      ? DecorationImage(
+                                          image: NetworkImage(AppHelper.formatImageURL(highlight.coverUrl!)),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : null,
+                                ),
+                                child: (highlight.coverUrl == null || highlight.coverUrl!.isEmpty)
+                                    ? const Icon(Icons.star, color: Colors.white, size: 30)
+                                    : null,
+                              ),
+                              const SizedBox(height: 5),
+                              SizedBox(
+                                width: 64,
+                                child: Text(
+                                  highlight.title,
+                                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            const SizedBox(height: 10),
 
 // Tabs bài viết của người dùng này
             const DefaultTabController(

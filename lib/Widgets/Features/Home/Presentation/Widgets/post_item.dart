@@ -124,10 +124,10 @@ class _PostItemState extends State<PostItem> {
           trailing: const Icon(Icons.more_horiz, color: Colors.white),
         ),
 
-        // 2. Hình ảnh bài viết (hỗ trợ trượt nhiều ảnh)
+        // 2. Hình ảnh bài viết
         if (widget.post.postMedia.isNotEmpty)
           AspectRatio(
-            aspectRatio: 1, // Fix khung hình vuông (hoặc chỉnh thành 4/5 nếu muốn dọc hơn)
+            aspectRatio: 1,
             child: PageView.builder(
               itemCount: widget.post.postMedia.length,
               onPageChanged: (index) {
@@ -147,6 +147,7 @@ class _PostItemState extends State<PostItem> {
           ),
 
         // 3. Thanh tương tác
+        SizedBox(height: 10),
         _buildActionButtons(context),
 
         // 4. Số lượt thích

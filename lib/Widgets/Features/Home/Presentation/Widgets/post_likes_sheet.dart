@@ -158,7 +158,7 @@ class _PostLikesSheetState extends State<PostLikesSheet> {
                                         padding: const EdgeInsets.symmetric(horizontal: 16),
                                       ),
                                       child: Text(
-                                        user.isFollowing ? 'Đang theo dõi' : 'Theo dõi',
+                                        user.isFollowing ? 'Hủy theo dõi' : 'Theo dõi',
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,

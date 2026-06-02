@@ -78,7 +78,6 @@ void main() async {
 
   FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
     if (message != null) {
-      print("🔥 Người dùng đã nhấn vào thông báo (từ Terminated): ${message.notification?.title}");
       Future.delayed(const Duration(milliseconds: 500), () {
         _handleNotificationNavigation(message);
       });

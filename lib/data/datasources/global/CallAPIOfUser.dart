@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:dio/dio.dart';
 import '../ApiServices.dart';
 import '../DTOs/PostDTO.dart';
 import '../DTOs/StoryDTO.dart';
@@ -292,12 +294,12 @@ class CallMyAPI {
   }
 
   // 14. Lấy followers
-  static Future<List<SummaryUserDTO>> getFollowers(int userId) async {
+  static Future<List<SuggestedUserDTO>> getFollowers(int userId) async {
     try {
       final response = await ApiService().get('/user/$userId/followers');
       if (response != null && response['data'] != null) {
         var dataList = response['data'] as List;
-        return dataList.map((json) => SummaryUserDTO.fromJson(json)).toList();
+        return dataList.map((json) => SuggestedUserDTO.fromJson(json)).toList();
       }
       return [];
     } catch (e) {
@@ -430,5 +432,177 @@ class CallMyAPI {
       },
     );
     return response;
+  }
+
+  // 26. Đăng xuất (POST /auth/logout)
+  static Future<dynamic> logout(String? deviceToken) async {
+    try {
+      final response = await ApiService().post(
+        '/auth/logout',
+        data: deviceToken != null ? {'DeviceToken': deviceToken} : {},
+      );
+      return response;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // 27. Xóa story
+  static Future<bool> deleteStory(int storyId) async {
+    try {
+      final response = await ApiService().delete('/story/$storyId');
+      return response != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 28. Xem danh sách người đã xem story
+  static Future<List<StoryViewerDTO>> getStoryViewers(int storyId) async {
+    try {
+      final response = await ApiService().get('/story/$storyId/viewers');
+      if (response != null && response['data'] != null) {
+        var dataList = response['data'] as List;
+        return dataList.map((json) => StoryViewerDTO.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // 29. Thả tim/Bỏ thả tim story
+  static Future<bool> toggleLikeStory(int storyId) async {
+    try {
+      final response = await ApiService().post('/story/$storyId/like');
+      return response != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 30. Lấy danh sách story đã lưu trữ (Archived)
+  static Future<List<StoryDTO>> getArchivedStories() async {
+    try {
+      final response = await ApiService().get('/story/archived');
+      if (response != null && response['data'] != null) {
+        var dataList = response['data'] as List;
+        return dataList.map((json) => StoryDTO.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // 31. Tạo Highlight mới với ảnh bìa
+  static Future<bool> createHighlight(String title, List<int> storyIds, File coverImage) async {
+    try {
+      final formData = FormData.fromMap({
+        'Title': title,
+        'CoverImage': await MultipartFile.fromFile(coverImage.path),
+      });
+      for (var id in storyIds) {
+        formData.fields.add(MapEntry('StoryIds', id.toString()));
+      }
+
+      final response = await ApiService().post(
+        '/story/highlight',
+        data: formData,
+      );
+      return response != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 32. Lấy danh sách highlight của người dùng
+  static Future<List<HighlightDTO>> getMyHighlights() async {
+    try {
+      final response = await ApiService().get('/story/my-highlights');
+      if (response != null && response['data'] != null) {
+        var dataList = response['data'] as List;
+        return dataList.map((json) => HighlightDTO.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // 33. Chi tiết một highlight
+  static Future<HighlightDetailDTO?> getHighlightDetails(int highlightId) async {
+    try {
+      final response = await ApiService().get('/story/highlight/$highlightId');
+      if (response != null && response['data'] != null) {
+        return HighlightDetailDTO.fromJson(response['data']);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // 34. Sửa highlight
+  static Future<bool> updateHighlight(int highlightId, String title, List<int> storyIds, File? coverImage) async {
+    try {
+      var formDataMap = {
+        'Title': title,
+      };
+      
+      if (coverImage != null) {
+        formDataMap['CoverImage'] = (await MultipartFile.fromFile(coverImage.path)) as String;
+      }
+      
+      final formData = FormData.fromMap(formDataMap);
+      for (var id in storyIds) {
+        formData.fields.add(MapEntry('StoryIds', id.toString()));
+      }
+
+      final response = await ApiService().put(
+        '/story/highlight/$highlightId',
+        data: formData,
+      );
+      return response != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 35. Xóa highlight
+  static Future<bool> deleteHighlight(int highlightId) async {
+    try {
+      final response = await ApiService().delete('/story/highlight/$highlightId');
+      return response != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 36. Lấy danh sách highlight của người dùng khác
+  static Future<List<HighlightDTO>> getUserHighlights(int userId) async {
+    try {
+      final response = await ApiService().get('/story/user/$userId/highlights');
+      if (response != null && response['data'] != null) {
+        var dataList = response['data'] as List;
+        return dataList.map((json) => HighlightDTO.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // 37. Chi tiết một highlight với tư cách khách
+  static Future<HighlightDetailDTO?> getGuestHighlightDetails(int highlightId) async {
+    try {
+      final response = await ApiService().get('/story/guest/highlight/$highlightId');
+      if (response != null && response['data'] != null) {
+        return HighlightDetailDTO.fromJson(response['data']);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 }
