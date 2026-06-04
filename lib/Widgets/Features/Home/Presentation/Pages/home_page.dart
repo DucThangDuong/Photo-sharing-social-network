@@ -11,6 +11,7 @@ import '../../../../../presentation/pages/guest_profile_page.dart';
 import '../../../Profile/Presentation/Page/profile_page.dart';
 import '../../../Auth/Presentation/Pages/login_page.dart';
 import '../Widgets/post_item.dart';
+import 'message_list_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -109,13 +110,26 @@ class _HomePageState extends State<HomePage> {
         title: const Text('MU',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
         actions: [
-          IconButton(icon: const Icon(Icons.add_box_outlined), onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const NewPostScreen()),
-            );
-          }),
+          IconButton(
+            icon: const Icon(Icons.add_box_outlined), 
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const NewPostScreen()),
+              );
+            }
+          ),
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline), 
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const MessageListPage()),
+              );
+            }
+          ),
           IconButton(
             icon: const Icon(Icons.exit_to_app, color: Colors.white),
             onPressed: () {

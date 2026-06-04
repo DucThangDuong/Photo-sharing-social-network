@@ -9,6 +9,7 @@ import '../../data/datasources/global/User.dart';
 import '../../data/Helper.dart';
 import '../widgets/guest_profile/ProfilePostGridGuest.dart';
 import '../widgets/guest_profile/profile_header.dart';
+import 'chat_detail_page.dart';
 
 class GuestProfilePage extends StatefulWidget {
   final int userId;
@@ -170,6 +171,40 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
       if (mounted) setState(() => _isActionLoading = false);
     }
   }
+
+  bool _isChatLoading = false;
+
+  Future<void> _openChat() async {
+    if (_isChatLoading || _user == null) return;
+    setState(() => _isChatLoading = true);
+
+    try {
+      final conversationId = await CallMyAPI.getOrCreateConversation(_user!.id);
+      if (conversationId != null && mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatDetailPage(
+              conversationId: conversationId,
+              otherUserName: _user!.username,
+              otherUserAvatar: _user!.avatarUrl,
+            ),
+          ),
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Không thể tạo hoặc lấy phòng chat')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error opening chat: $e');
+    } finally {
+      if (mounted) setState(() => _isChatLoading = false);
+    }
+  }
+
   //các option để người dùng chọn xem story
   void _showAvatarOptions(BuildContext context) {
     if(_user==null) return;
@@ -368,6 +403,34 @@ class _GuestProfilePageState extends State<GuestProfilePage> {
                                 : Text(
                                     _isFollowing ? 'Hủy theo dõi' : 'Theo dõi',
                                     style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _openChat,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF262626),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: _isChatLoading
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                : const Text(
+                                    'Nhắn tin',
+                                    style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,

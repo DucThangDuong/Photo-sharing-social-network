@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:untitled/data/datasources/DTOs/PostDTO.dart';
 import 'package:untitled/data/Helper.dart';
+import 'package:untitled/Widgets/Features/Home/Presentation/Widgets/post_likes_sheet.dart';
+import 'package:untitled/Widgets/Features/Home/Presentation/Widgets/share_post_bottom_sheet.dart';
+
 import '../../../Profile/Presentation/Widgets/comment_bottom_sheet.dart';
-import 'post_likes_sheet.dart';
 
 class PostItem extends StatefulWidget {
   final HomePostDTO post;
@@ -41,6 +43,17 @@ class _PostItemState extends State<PostItem> {
             icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
             onPressed: () => _showComments(context),
           ),
+        IconButton(
+          icon: const Icon(Icons.near_me_outlined, color: Colors.white),
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (context) => SharePostBottomSheet(postId: widget.post.id),
+            );
+          },
+        ),
         
         Expanded(
           child: widget.post.postMedia.length > 1

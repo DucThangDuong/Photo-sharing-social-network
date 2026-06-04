@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import '../ApiServices.dart';
+import '../DTOs/ChatDTO.dart';
 import '../DTOs/PostDTO.dart';
 import '../DTOs/StoryDTO.dart';
 import '../DTOs/UserDTO.dart';
@@ -447,6 +448,30 @@ class CallMyAPI {
     }
   }
 
+  // Quên mật khẩu
+  static Future<dynamic> forgotPassword(String email) async {
+    return await ApiService().post(
+      '/auth/forgot-password',
+      data: {'Email': email},
+    );
+  }
+
+  // Xác thực OTP
+  static Future<dynamic> verifyOtp(String email, String otp) async {
+    return await ApiService().post(
+      '/auth/verify-otp',
+      data: {'Email': email, 'Otp': otp},
+    );
+  }
+
+  // Đặt lại mật khẩu mới
+  static Future<dynamic> resetPassword(String email, String otp, String newPassword) async {
+    return await ApiService().post(
+      '/auth/reset-password',
+      data: {'Email': email, 'Otp': otp, 'NewPassword': newPassword},
+    );
+  }
+
   // 27. Xóa story
   static Future<bool> deleteStory(int storyId) async {
     try {
@@ -454,6 +479,106 @@ class CallMyAPI {
       return response != null;
     } catch (e) {
       return false;
+    }
+  }
+
+  // Lấy hoặc tạo phòng chat
+  static Future<int?> getOrCreateConversation(int otherUserId) async {
+    try {
+      final response = await ApiService().get('/chat/get-or-create/$otherUserId');
+      if (response != null && response['data'] != null) {
+        return response['data']['conversationId'];
+      }
+      return null;
+    } catch (e) {
+      print("Lỗi lấy phòng chat: $e");
+      return null;
+    }
+  }
+
+  // Lấy chi tiết phòng chat và tin nhắn
+  static Future<ConversationDetailDTO?> getConversationMessages(int conversationId, {int page = 1, int limit = 20}) async {
+    try {
+      final response = await ApiService().get('/chat/$conversationId/messages', queryParameters: {'page': page, 'limit': limit});
+      if (response != null && response['data'] != null) {
+        return ConversationDetailDTO.fromJson(response['data']);
+      }
+      return null;
+    } catch (e) {
+      print("Lỗi lấy tin nhắn: $e");
+      return null;
+    }
+  }
+
+  // Xóa tin nhắn
+  static Future<bool> deleteMessage(int messageId) async {
+    try {
+      final response = await ApiService().delete('/chat/messages/$messageId');
+      return response != null && response['success'] == true;
+    } catch (e) {
+      print("Lỗi xóa tin nhắn: $e");
+      return false;
+    }
+  }
+
+  // Lấy thông tin bài viết theo ID (dùng cho link preview trong chat)
+  static Future<HomePostDTO?> getPostById(int postId) async {
+    try {
+      final response = await ApiService().get('/post/$postId');
+      if (response != null && response['data'] != null) {
+        return HomePostDTO.fromJson(response['data']);
+      }
+      return null;
+    } catch (e) {
+      print("Lỗi lấy bài viết: $e");
+      return null;
+    }
+  }
+
+  // Đánh dấu đã đọc tin nhắn
+  static Future<bool> markConversationAsRead(int conversationId) async {
+    try {
+      final response = await ApiService().put('/chat/$conversationId/read');
+      if (response != null && response['success'] == true) {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print("Lỗi đánh dấu đã đọc: $e");
+      return false;
+    }
+  }
+
+  // Gửi tin nhắn
+  static Future<MessageDTO?> sendMessage(int conversationId, String? content, {dynamic mediaFile}) async {
+    try {
+      final FormData formData = FormData.fromMap({
+        if (content != null && content.isNotEmpty) 'Content': content,
+        if (mediaFile != null) 'MediaFile': await MultipartFile.fromFile(mediaFile.path, filename: mediaFile.path.split('/').last),
+      });
+
+      final response = await ApiService().post('/chat/$conversationId/messages', data: formData);
+      if (response != null && response['data'] != null) {
+        return MessageDTO.fromJson(response['data']);
+      }
+      return null;
+    } catch (e) {
+      print("Lỗi gửi tin nhắn: $e");
+      return null;
+    }
+  }
+
+  // Lấy danh sách hộp thư thoại (chat/inbox)
+  static Future<List<dynamic>> getInbox() async {
+    try {
+      final response = await ApiService().get('/chat/inbox');
+      if (response != null && response['data'] != null) {
+        return response['data'] as List;
+      }
+      return [];
+    } catch (e) {
+      print("Lỗi lấy danh sách inbox: $e");
+      return [];
     }
   }
 

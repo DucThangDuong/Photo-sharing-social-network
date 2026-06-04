@@ -11,6 +11,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:untitled/data/datasources/ApiServices.dart';
 import 'package:untitled/data/datasources/global/CallAPIOfUser.dart';
 import 'package:untitled/data/datasources/global/SnackBarError.dart';
+import 'forgot_password_page.dart';
 
 class InstagramLoginDark extends StatefulWidget {
   @override
@@ -153,13 +154,13 @@ class _InstagramLoginDarkState extends State<InstagramLoginDark> {
                           onPressed: _isLoading ? () {} : _handleLogin,
                         ),
 
-                        // TextButton(
-                        //   onPressed: () => Navigator.push(
-                        //       context,
-                        //       MaterialPageRoute(builder: (context) => const FindAccountPage())
-                        //   ),
-                        //   child: const Text('Quên mật khẩu?', style: TextStyle(color: Colors.white)),
-                        // ),
+                        TextButton(
+                          onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const ForgotPasswordPage())
+                          ),
+                          child: const Text('Quên mật khẩu?', style: TextStyle(color: Colors.white)),
+                        ),
 
                         const Spacer(flex: 2),
 
