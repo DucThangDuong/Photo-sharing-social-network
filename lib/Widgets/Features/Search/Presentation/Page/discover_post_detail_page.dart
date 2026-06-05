@@ -8,6 +8,7 @@ import '../../../../../data/datasources/global/User.dart';
 import '../../../../../presentation/pages/guest_profile_page.dart';
 import '../../../Profile/Presentation/Page/profile_page.dart';
 import '../../../Home/Presentation/Widgets/post_likes_sheet.dart';
+import '../../../Home/Presentation/Widgets/share_post_bottom_sheet.dart';
 
 class DiscoverPostDetailPage extends StatefulWidget {
   final int postId;
@@ -275,6 +276,17 @@ class _DiscoverPostDetailPageState extends State<DiscoverPostDetailPage> {
                               Icons.chat_bubble_outline, color: Colors.white),
                           onPressed: () {},
                         ),
+                      IconButton(
+                        icon: const Icon(Icons.near_me_outlined, color: Colors.white),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => SharePostBottomSheet(postId: _post!.id),
+                          );
+                        },
+                      ),
                       const Spacer(),
                     ],
                   ),

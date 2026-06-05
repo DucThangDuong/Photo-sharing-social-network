@@ -418,8 +418,20 @@ class _PostLinkPreviewState extends State<PostLinkPreview> {
 
   Future<void> _fetchPost() async {
     try {
-      final post = await CallMyAPI.getPostById(widget.postId);
+      final response = await CallMyAPI.getPostDetail(widget.postId);
       if (mounted) {
+        HomePostDTO? post;
+        if (response != null) {
+          dynamic postData;
+          if (response is Map<String, dynamic> && response.containsKey('data')) {
+            postData = response['data'];
+          } else {
+            postData = response;
+          }
+          if (postData != null && postData is Map<String, dynamic>) {
+            post = HomePostDTO.fromJson(postData);
+          }
+        }
         setState(() {
           _post = post;
           _isLoading = false;

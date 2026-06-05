@@ -521,20 +521,6 @@ class CallMyAPI {
     }
   }
 
-  // Lấy thông tin bài viết theo ID (dùng cho link preview trong chat)
-  static Future<HomePostDTO?> getPostById(int postId) async {
-    try {
-      final response = await ApiService().get('/post/$postId');
-      if (response != null && response['data'] != null) {
-        return HomePostDTO.fromJson(response['data']);
-      }
-      return null;
-    } catch (e) {
-      print("Lỗi lấy bài viết: $e");
-      return null;
-    }
-  }
-
   // Đánh dấu đã đọc tin nhắn
   static Future<bool> markConversationAsRead(int conversationId) async {
     try {

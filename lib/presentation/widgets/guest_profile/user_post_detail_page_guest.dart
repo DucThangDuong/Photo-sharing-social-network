@@ -8,6 +8,7 @@ import '../../../../../data/datasources/global/User.dart';
 import '../../../../../data/datasources/DTOs/UserDTO.dart';
 import '../../../Widgets/Features/Profile/Presentation/Widgets/comment_bottom_sheet.dart';
 import '../../../Widgets/Features/Home/Presentation/Widgets/post_likes_sheet.dart';
+import '../../../Widgets/Features/Home/Presentation/Widgets/share_post_bottom_sheet.dart';
 
 class UserPostsDetailPageGuest extends StatefulWidget {
   final int initialIndex;
@@ -185,8 +186,11 @@ class _UserPostDetailItemGuestState extends State<UserPostDetailItemGuest> {
             ),
           ),
         IconButton(
-          icon: const Icon(Icons.send_outlined, color: Colors.white),
-          onPressed: () {},
+          icon: const Icon(Icons.near_me_outlined, color: Colors.white),
+          onPressed: () => widget.onShowSheet(
+            context,
+            SharePostBottomSheet(postId: widget.post.id),
+          ),
         ),
         Expanded(
           child: widget.post.postMedia.length > 1
